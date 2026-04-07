@@ -1,0 +1,1783 @@
+<!--
+本地预览：
+1. 直接双击当前文件，或在浏览器中打开 index.html。
+2. 默认先进入作品开始页，点击 START 后进入工作台。
+
+部署成网址：
+1. 可直接上传 index.html 到 GitHub Pages、Netlify、Vercel 或任意静态托管。
+2. 这是单文件页面，无需构建工具。
+
+替换文本内容：
+1. 进入工作台后，在控制面板中直接粘贴文本，画面会立即更新。
+2. 也可以上传 txt 文件，内容会自动载入并渲染。
+3. 如果要改默认文本，可编辑脚本中的 DEFAULT_TEXT 常量。
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>ART OF TEXT</title>
+  <style>
+    :root {
+      --page-bg-1: #efeae3;
+      --page-bg-2: #ddd7cf;
+      --page-glow-1: rgba(255, 255, 255, 0.74);
+      --page-glow-2: rgba(217, 124, 69, 0.12);
+      --page-veil: rgba(255, 255, 255, 0.14);
+      --ui-text: #252525;
+      --ui-text-soft: rgba(37, 37, 37, 0.58);
+      --ui-text-muted: rgba(37, 37, 37, 0.42);
+      --text: var(--ui-text);
+      --text-soft: var(--ui-text-soft);
+      --text-muted: var(--ui-text-muted);
+      --surface-1: rgba(255, 252, 246, 0.58);
+      --surface-2: rgba(255, 255, 255, 0.62);
+      --surface-soft: rgba(255, 255, 255, 0.42);
+      --surface-strong: rgba(255, 255, 255, 0.74);
+      --surface-border: rgba(255, 255, 255, 0.62);
+      --surface-inner: rgba(34, 34, 34, 0.06);
+      --accent: #d97c45;
+      --accent-soft: rgba(217, 124, 69, 0.14);
+      --accent-ring: rgba(217, 124, 69, 0.24);
+      --button-text: #fffaf6;
+      --input-bg: rgba(255, 255, 255, 0.74);
+      --range-1: rgba(217, 124, 69, 0.56);
+      --range-2: rgba(34, 34, 34, 0.16);
+      --thumb-bg: #fffdf9;
+      --shadow-lg: 0 36px 90px rgba(76, 63, 51, 0.12);
+      --shadow-md: 0 18px 38px rgba(76, 63, 51, 0.1);
+      --radius-xl: 34px;
+      --radius-lg: 26px;
+      --radius-md: 20px;
+      --radius-sm: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      min-height: 100%;
+      background:
+        radial-gradient(circle at 18% 22%, var(--page-glow-1), transparent 28%),
+        radial-gradient(circle at 80% 16%, var(--page-glow-2), transparent 24%),
+        linear-gradient(180deg, var(--page-bg-1) 0%, var(--page-bg-2) 100%);
+      color: var(--ui-text);
+      font-family: "Aptos", "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(to bottom, var(--page-veil), rgba(255, 255, 255, 0) 28%),
+        radial-gradient(circle at center, rgba(255, 255, 255, 0), rgba(0, 0, 0, 0.03) 100%);
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+      color: inherit;
+    }
+
+    .app {
+      position: relative;
+      width: 100%;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .eyebrow,
+    .tiny-label,
+    .stat-label,
+    .panel-title,
+    .chip {
+      font-family: "Consolas", "SFMono-Regular", "Liberation Mono", monospace;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    /* =========================
+       Landing page
+       ========================= */
+    .landing {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+      z-index: 30;
+      transition: opacity 720ms ease, transform 720ms ease, visibility 720ms ease;
+    }
+
+    .landing::before {
+      content: "ART OF TEXT";
+      position: absolute;
+      top: 4vh;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: "Arial Black", "Segoe UI", sans-serif;
+      font-size: min(19vw, 200px);
+      letter-spacing: 0.08em;
+      color: rgba(255, 255, 255, 0.45);
+      opacity: 0.55;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    .landing.is-hidden {
+      opacity: 0;
+      transform: scale(1.02);
+      visibility: hidden;
+    }
+
+    .landing-card {
+      position: relative;
+      width: min(760px, 100%);
+      padding: clamp(28px, 6vw, 56px);
+      border-radius: 42px;
+      background:
+        linear-gradient(180deg, var(--surface-2), var(--surface-1)),
+        var(--surface-1);
+      border: 1px solid var(--surface-border);
+      box-shadow: var(--shadow-lg);
+      backdrop-filter: blur(18px) saturate(130%);
+      -webkit-backdrop-filter: blur(18px) saturate(130%);
+    }
+
+    .landing-card::after {
+      content: "";
+      position: absolute;
+      inset: 14px;
+      border-radius: 30px;
+      border: 1px solid var(--surface-inner);
+      pointer-events: none;
+    }
+
+    .landing-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .eyebrow {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .landing-author {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: var(--surface-soft);
+      border: 1px solid var(--surface-inner);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+      font-size: 13px;
+      color: var(--text-soft);
+    }
+
+    .landing-author strong {
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.08em;
+    }
+
+    .landing-card h1 {
+      margin: 0;
+      font-size: clamp(54px, 10vw, 118px);
+      line-height: 0.9;
+      letter-spacing: 0.02em;
+      font-weight: 700;
+      font-family: "Bodoni MT", "Didot", "Times New Roman", serif;
+    }
+
+    .landing-copy {
+      max-width: 520px;
+      margin: 22px 0 14px;
+      font-size: clamp(16px, 2vw, 20px);
+      line-height: 1.62;
+      color: var(--text-soft);
+    }
+
+    .landing-note {
+      margin: 0 0 30px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+
+    .start-button {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      min-width: 156px;
+      min-height: 58px;
+      padding: 0 28px;
+      border: none;
+      border-radius: 999px;
+      background:
+        linear-gradient(180deg, rgba(240, 135, 80, 0.94), rgba(212, 110, 57, 0.96));
+      box-shadow:
+        0 18px 34px rgba(217, 124, 69, 0.24),
+        inset 0 1px 0 rgba(255, 255, 255, 0.45);
+      color: #fffaf6;
+      cursor: pointer;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      transition: transform 220ms ease, box-shadow 220ms ease, filter 220ms ease;
+    }
+
+    .start-button::after {
+      content: "";
+      position: absolute;
+      inset: 1px;
+      border-radius: inherit;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      pointer-events: none;
+    }
+
+    .start-button:hover,
+    .start-button:focus-visible {
+      transform: translateY(-2px);
+      box-shadow:
+        0 22px 40px rgba(217, 124, 69, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.52);
+      filter: saturate(1.04);
+      outline: none;
+    }
+
+    /* =========================
+       Workspace shell
+       ========================= */
+    .workspace {
+      position: relative;
+      min-height: 100vh;
+      padding: 24px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 18px;
+      opacity: 0;
+      transform: translateY(18px) scale(0.985);
+      pointer-events: none;
+      transition: opacity 720ms ease, transform 720ms ease;
+    }
+
+    .workspace.is-live {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+
+    .workspace-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 8px 2px 0;
+    }
+
+    .brand-block {
+      display: grid;
+      gap: 8px;
+    }
+
+    .brand-block h2 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 48px);
+      line-height: 0.95;
+      letter-spacing: 0.02em;
+      font-family: "Bodoni MT", "Didot", "Times New Roman", serif;
+    }
+
+    .brand-block p {
+      margin: 0;
+      font-size: 14px;
+      color: var(--text-soft);
+    }
+
+    .header-tools {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .header-chip,
+    .back-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 0 16px;
+      border-radius: 999px;
+      border: 1px solid var(--surface-inner);
+      background: var(--surface-soft);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.62);
+      color: var(--text-soft);
+      font-size: 12px;
+    }
+
+    .back-button {
+      cursor: pointer;
+      transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+    }
+
+    .back-button:hover,
+    .back-button:focus-visible {
+      transform: translateY(-1px);
+      border-color: rgba(217, 124, 69, 0.22);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.72),
+        0 12px 28px rgba(76, 63, 51, 0.08);
+      outline: none;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      padding: 0 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: rgba(124, 70, 39, 0.92);
+      font-size: 10px;
+      border: 1px solid var(--accent-ring);
+    }
+
+    .workspace-body {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 20px;
+      align-items: stretch;
+    }
+
+    .stage-card {
+      position: relative;
+      min-height: 0;
+      padding: 22px;
+      border-radius: 38px;
+      background:
+        linear-gradient(180deg, var(--surface-2), var(--surface-1)),
+        var(--surface-1);
+      border: 1px solid var(--surface-border);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .stage-card::after {
+      content: "";
+      position: absolute;
+      inset: 14px;
+      border-radius: 28px;
+      border: 1px solid var(--surface-inner);
+      pointer-events: none;
+    }
+
+    .stage-topline,
+    .panel-topline,
+    .field-head,
+    .field-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .stage-topline {
+      margin-bottom: 16px;
+    }
+
+    .tiny-label {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .stage-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: var(--surface-soft);
+      border: 1px solid var(--surface-inner);
+      font-size: 12px;
+      color: var(--text-soft);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 16px rgba(217, 124, 69, 0.35);
+    }
+
+    .stage-shell {
+      position: relative;
+      height: calc(100% - 62px);
+      min-height: 500px;
+      overflow: hidden;
+      border-radius: 30px;
+      background:
+        radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.05), transparent 26%),
+        radial-gradient(circle at 82% 22%, rgba(217, 124, 69, 0.08), transparent 24%),
+        linear-gradient(180deg, #1d1d1f 0%, #111214 100%);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+    }
+
+    .stage-shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0) 10%),
+        radial-gradient(circle at center, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.36) 100%);
+    }
+
+    #stage {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+      cursor: crosshair;
+    }
+
+    .stage-footer {
+      position: absolute;
+      left: 20px;
+      right: 20px;
+      bottom: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      pointer-events: none;
+    }
+
+    .stat-box {
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .stat-label {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.46);
+    }
+
+    .stat-value {
+      display: block;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.82);
+    }
+
+    .control-panel {
+      min-height: 0;
+      display: grid;
+      gap: 14px;
+      padding: 18px;
+      border-radius: 32px;
+      background:
+        linear-gradient(180deg, var(--surface-2), var(--surface-1)),
+        var(--surface-1);
+      border: 1px solid var(--surface-border);
+      box-shadow: var(--shadow-md);
+      overflow: auto;
+      backdrop-filter: blur(18px) saturate(130%);
+      -webkit-backdrop-filter: blur(18px) saturate(130%);
+    }
+
+    .panel-title {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .panel-topline h3 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1;
+      font-family: "Bodoni MT", "Didot", "Times New Roman", serif;
+    }
+
+    .panel-group {
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+      border-radius: 22px;
+      background: var(--surface-soft);
+      border: 1px solid var(--surface-inner);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+    }
+
+    .field-head {
+      align-items: baseline;
+    }
+
+    .field-label {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .field-value {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .text-input {
+      width: 100%;
+      min-height: 148px;
+      padding: 16px 18px;
+      border: 1px solid var(--surface-inner);
+      border-radius: 18px;
+      background: var(--input-bg);
+      resize: vertical;
+      outline: none;
+      line-height: 1.6;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+      transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+    }
+
+    .text-input:focus {
+      border-color: var(--accent-ring);
+      box-shadow:
+        0 0 0 4px rgba(217, 124, 69, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.72);
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    .action-row,
+    .mode-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .ghost-btn,
+    .upload-btn,
+    .mode-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 16px;
+      border-radius: 999px;
+      border: 1px solid var(--surface-inner);
+      background: var(--surface-strong);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.72),
+        0 10px 22px rgba(76, 63, 51, 0.06);
+      cursor: pointer;
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
+    }
+
+    .ghost-btn:hover,
+    .upload-btn:hover,
+    .mode-btn:hover,
+    .ghost-btn:focus-visible,
+    .upload-btn:focus-visible,
+    .mode-btn:focus-visible {
+      transform: translateY(-1px);
+      border-color: rgba(217, 124, 69, 0.24);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.78),
+        0 14px 28px rgba(76, 63, 51, 0.08);
+      outline: none;
+    }
+
+    .upload-btn input {
+      display: none;
+    }
+
+    .mode-btn.is-active {
+      background:
+        linear-gradient(180deg, rgba(240, 135, 80, 0.92), rgba(214, 112, 58, 0.96));
+      border-color: rgba(217, 124, 69, 0.36);
+      color: #fffaf6;
+      box-shadow:
+        0 16px 28px rgba(217, 124, 69, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.34);
+    }
+
+    .range-wrap {
+      display: grid;
+      gap: 8px;
+    }
+
+    .range-input {
+      width: 100%;
+      appearance: none;
+      height: 8px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--range-1), var(--range-2));
+      outline: none;
+    }
+
+    .range-input::-webkit-slider-thumb {
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 1px solid var(--accent-ring);
+      background: var(--thumb-bg);
+      box-shadow: 0 8px 18px rgba(217, 124, 69, 0.18);
+      cursor: ew-resize;
+    }
+
+    .range-input::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 1px solid var(--accent-ring);
+      background: var(--thumb-bg);
+      box-shadow: 0 8px 18px rgba(217, 124, 69, 0.18);
+      cursor: ew-resize;
+    }
+
+    .color-field {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .meter-grid,
+    .theme-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .meter-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .theme-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .meter-grid .range-wrap {
+      padding: 12px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(34, 34, 34, 0.05);
+    }
+
+    .theme-btn {
+      display: grid;
+      gap: 10px;
+      min-height: 84px;
+      padding: 12px 14px;
+      border-radius: 18px;
+      border: 1px solid var(--surface-inner);
+      background: var(--surface-strong);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.72),
+        0 10px 22px rgba(76, 63, 51, 0.06);
+      cursor: pointer;
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    }
+
+    .theme-btn:hover,
+    .theme-btn:focus-visible {
+      transform: translateY(-1px);
+      border-color: var(--accent-ring);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.76),
+        0 14px 28px rgba(76, 63, 51, 0.08);
+      outline: none;
+    }
+
+    .theme-btn.is-active {
+      border-color: var(--accent-ring);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.76),
+        0 0 0 2px rgba(217, 124, 69, 0.12),
+        0 14px 28px rgba(76, 63, 51, 0.08);
+    }
+
+    .theme-swatches {
+      display: flex;
+      gap: 8px;
+    }
+
+    .theme-swatches span {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--swatch, #000);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24);
+    }
+
+    .theme-name {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .theme-code {
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-family: "Consolas", "SFMono-Regular", "Liberation Mono", monospace;
+    }
+
+    .color-picker {
+      width: 56px;
+      height: 56px;
+      padding: 4px;
+      border-radius: 18px;
+      border: 1px solid rgba(34, 34, 34, 0.08);
+      background: rgba(255, 255, 255, 0.82);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.76);
+    }
+
+    .color-picker input {
+      width: 100%;
+      height: 100%;
+      padding: 0;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .helper {
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.55;
+      color: var(--text-soft);
+    }
+
+    @media (max-width: 1040px) {
+      .workspace-body {
+        grid-template-columns: 1fr;
+      }
+
+      .control-panel {
+        order: 2;
+      }
+
+      .stage-card {
+        order: 1;
+      }
+
+      .stage-shell {
+        min-height: 420px;
+      }
+    }
+
+    @media (max-width: 720px) {
+      body {
+        overflow: auto;
+      }
+
+      .workspace {
+        padding: 14px;
+      }
+
+      .landing {
+        padding: 16px;
+      }
+
+      .landing-card h1 {
+        font-size: clamp(42px, 18vw, 72px);
+      }
+
+      .landing-meta,
+      .workspace-header,
+      .field-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .header-tools {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .stage-card {
+        padding: 14px;
+      }
+
+      .stage-shell {
+        min-height: 58vh;
+        height: auto;
+      }
+
+      .stage-footer {
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .control-panel {
+        padding: 14px;
+      }
+
+      .text-input {
+        min-height: 128px;
+      }
+
+      .meter-grid,
+      .theme-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section class="landing" id="landingPage">
+      <div class="landing-card">
+        <div class="landing-meta">
+          <span class="eyebrow">Interactive Text Artwork</span>
+          <div class="landing-author">
+            <span>Author</span>
+            <strong>Re</strong>
+          </div>
+        </div>
+        <h1>ART OF TEXT</h1>
+        <p class="landing-copy">把文本放进一个被触碰会轻微闭合、被雨痕缓慢扰动的互动文字装置里。</p>
+        <p class="landing-note">创意投稿和错误反馈地址：3342784909@qq.com</p>
+        <button class="start-button" id="startButton" type="button">START</button>
+      </div>
+    </section>
+
+    <section class="workspace" id="workspace">
+      <header class="workspace-header">
+        <div class="brand-block">
+          <span class="eyebrow">Interactive Text Workspace</span>
+          <h2>ART OF TEXT</h2>
+          <p>Central text stage with soft mimosa and rain interactions.</p>
+        </div>
+        <div class="header-tools">
+          <span class="header-chip">Re</span>
+          <button class="back-button" id="backButton" type="button">Back</button>
+        </div>
+      </header>
+
+      <div class="workspace-body">
+        <section class="stage-card">
+          <div class="stage-topline">
+            <span class="tiny-label">Central Text Surface</span>
+            <div class="stage-status">
+              <span class="status-dot"></span>
+              <span id="modeStatus">Mimosa</span>
+            </div>
+          </div>
+
+          <div class="stage-shell">
+            <canvas id="stage" aria-label="Interactive text canvas"></canvas>
+            <div class="stage-footer">
+              <div class="stat-box">
+                <span class="stat-label">Text Area</span>
+                <span class="stat-value" id="layoutStatus">Centered Rectangle</span>
+              </div>
+              <div class="stat-box">
+                <span class="stat-label">Visibility</span>
+                <span class="stat-value" id="overflowStatus">All text visible</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="control-panel">
+          <div class="panel-topline">
+            <div>
+              <div class="panel-title">Control Panel</div>
+              <h3>Workspace</h3>
+            </div>
+            <span class="chip">Live</span>
+          </div>
+
+          <div class="panel-group">
+            <div class="field-head">
+              <span class="field-label">Mode</span>
+              <span class="field-value" id="modeLabel">Mimosa</span>
+            </div>
+            <div class="mode-row">
+              <button class="mode-btn is-active" data-mode="mimosa" type="button">Mimosa</button>
+              <button class="mode-btn" data-mode="rain" type="button">Rain</button>
+            </div>
+          </div>
+
+          <div class="panel-group">
+            <div class="field-head">
+              <span class="field-label">Text</span>
+              <span class="field-value">Paste / Upload</span>
+            </div>
+            <textarea class="text-input" id="textInput" spellcheck="false"></textarea>
+            <div class="action-row">
+              <label class="upload-btn">
+                TXT
+                <input type="file" id="fileInput" accept=".txt,text/plain" />
+              </label>
+              <button class="ghost-btn" id="sampleButton" type="button">Reset</button>
+            </div>
+            <p class="helper">上传多少文字就显示多少文字，文字会被排进中央矩形区域，不再自动重复铺满。</p>
+          </div>
+
+          <div class="panel-group">
+            <div class="color-field">
+              <div>
+                <div class="field-label">Text Color</div>
+                <div class="helper">调整主舞台文字颜色。</div>
+              </div>
+              <label class="color-picker" aria-label="文字颜色">
+                <input type="color" id="colorInput" value="#f4efe6" />
+              </label>
+            </div>
+
+            <div class="range-wrap">
+              <div class="field-row">
+                <span class="field-label">Size</span>
+                <span class="field-value" id="fontSizeValue">28 px</span>
+              </div>
+              <input class="range-input" id="fontSizeInput" type="range" min="16" max="42" step="1" value="28" />
+            </div>
+
+            <div class="range-wrap">
+              <div class="field-row">
+                <span class="field-label">Line / Density</span>
+                <span class="field-value" id="densityValue">1.00 x</span>
+              </div>
+              <input class="range-input" id="densityInput" type="range" min="0.82" max="1.28" step="0.01" value="1.00" />
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      /* =========================
+         Default content and shared constants
+         ========================= */
+      const DEFAULT_TEXT = [
+        "生育总是有一次阵痛。结果无数次阵痛。",
+        "然而花果永远是灰色。"
+      ].join("\n\n");
+
+      const TEXT_FONT = '"Bodoni MT", "Didot", "Times New Roman", "Noto Serif SC", serif';
+      const HUD_FONT = '"Consolas", "SFMono-Regular", "Liberation Mono", monospace';
+
+      /* =========================
+         DOM references
+         ========================= */
+      const landingPage = document.getElementById("landingPage");
+      const workspace = document.getElementById("workspace");
+      const startButton = document.getElementById("startButton");
+      const backButton = document.getElementById("backButton");
+      const canvas = document.getElementById("stage");
+      const ctx = canvas.getContext("2d");
+      const textInput = document.getElementById("textInput");
+      const fileInput = document.getElementById("fileInput");
+      const sampleButton = document.getElementById("sampleButton");
+      const colorInput = document.getElementById("colorInput");
+      const fontSizeInput = document.getElementById("fontSizeInput");
+      const densityInput = document.getElementById("densityInput");
+      const fontSizeValue = document.getElementById("fontSizeValue");
+      const densityValue = document.getElementById("densityValue");
+      const modeStatus = document.getElementById("modeStatus");
+      const modeLabel = document.getElementById("modeLabel");
+      const layoutStatus = document.getElementById("layoutStatus");
+      const overflowStatus = document.getElementById("overflowStatus");
+      const modeButtons = Array.from(document.querySelectorAll(".mode-btn"));
+
+      /* =========================
+         Runtime state
+         ========================= */
+      const state = {
+        view: "landing",
+        mode: "mimosa",
+        sourceText: DEFAULT_TEXT,
+        textColor: colorInput.value,
+        fontSize: Number(fontSizeInput.value),
+        density: Number(densityInput.value),
+        activeFontSize: Number(fontSizeInput.value),
+        hiddenGlyphCount: 0,
+        dpr: 1,
+        width: 0,
+        height: 0,
+        textRegion: null,
+        glyphs: [],
+        lines: [],
+        droplets: [],
+        pointers: new Map(),
+        needsLayout: true,
+        resizeQueued: false,
+        lastFrame: performance.now(),
+        time: 0,
+        rainSpawn: 0,
+        lastSpawnX: null
+      };
+
+      textInput.value = DEFAULT_TEXT;
+
+      /* =========================
+         Helpers
+         ========================= */
+      function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value));
+      }
+
+      function lerp(start, end, amount) {
+        return start + (end - start) * amount;
+      }
+
+      function smoothstep(edge0, edge1, value) {
+        const t = clamp((value - edge0) / (edge1 - edge0), 0, 1);
+        return t * t * (3 - 2 * t);
+      }
+
+      function randomRange(min, max) {
+        return min + Math.random() * (max - min);
+      }
+
+      function pointFromEvent(event) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top
+        };
+      }
+
+      function activateWorkspace(skipTransition) {
+        state.view = "workspace";
+        workspace.classList.add("is-live");
+        landingPage.classList.add("is-hidden");
+        if (skipTransition) {
+          workspace.style.transition = "none";
+          landingPage.style.transition = "none";
+          requestAnimationFrame(() => {
+            workspace.style.transition = "";
+            landingPage.style.transition = "";
+          });
+        }
+        state.needsLayout = true;
+      }
+
+      function activateLanding() {
+        state.view = "landing";
+        state.pointers.clear();
+        workspace.classList.remove("is-live");
+        landingPage.classList.remove("is-hidden");
+      }
+
+      function updateLabels() {
+        fontSizeValue.textContent = `${state.fontSize} px`;
+        densityValue.textContent = `${state.density.toFixed(2)} x`;
+        const modeName = state.mode === "mimosa" ? "Mimosa" : "Rain";
+        modeStatus.textContent = modeName;
+        modeLabel.textContent = modeName;
+      }
+
+      function resizeCanvas() {
+        const rect = canvas.getBoundingClientRect();
+        state.dpr = Math.min(window.devicePixelRatio || 1, 2);
+        state.width = rect.width;
+        state.height = rect.height;
+        canvas.width = Math.max(1, Math.round(rect.width * state.dpr));
+        canvas.height = Math.max(1, Math.round(rect.height * state.dpr));
+        ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+        state.needsLayout = true;
+      }
+
+      function queueResize() {
+        if (state.resizeQueued) {
+          return;
+        }
+        state.resizeQueued = true;
+        requestAnimationFrame(() => {
+          state.resizeQueued = false;
+          resizeCanvas();
+        });
+      }
+
+      /* =========================
+         Text layout
+         - No repetition: render exactly the user's text.
+         - Keep all glyphs inside one centered rectangle.
+         ========================= */
+      function getTextRegion() {
+        const mobile = window.innerWidth <= 720;
+        const width = mobile ? state.width * 0.88 : Math.min(state.width * 0.76, 920);
+        const height = mobile ? state.height * 0.72 : Math.min(state.height * 0.68, 610);
+
+        return {
+          x: (state.width - width) / 2,
+          y: (state.height - height) / 2,
+          w: width,
+          h: height
+        };
+      }
+
+      function getSpacingConfig(fontSize) {
+        const density = state.density;
+        const lineHeight = fontSize * (1.26 + (density - 1) * 0.52);
+        const letterGap = fontSize * ((density - 1) * 0.055);
+        const paddingX = clamp(fontSize * (1.45 - (density - 1) * 0.8), 22, 40);
+        const paddingY = clamp(fontSize * (1.5 - (density - 1) * 0.9), 22, 42);
+
+        return { lineHeight, letterGap, paddingX, paddingY };
+      }
+
+      function layoutTextForFont(fontSize) {
+        const region = getTextRegion();
+        const spacing = getSpacingConfig(fontSize);
+        const maxWidth = Math.max(20, region.w - spacing.paddingX * 2);
+        const maxHeight = Math.max(20, region.h - spacing.paddingY * 2);
+        const text = String(state.sourceText || "");
+
+        function lineWidthOf(chars) {
+          return chars.reduce((width, entry) => {
+            const measureChar = entry.char === " " ? " " : entry.char;
+            return width + ctx.measureText(measureChar).width + spacing.letterGap;
+          }, 0);
+        }
+
+        ctx.save();
+        ctx.font = `500 ${fontSize}px ${TEXT_FONT}`;
+        ctx.textBaseline = "alphabetic";
+
+        const paragraphs = text.replace(/\r/g, "").split("\n");
+        const lines = [];
+        let hiddenGlyphCount = 0;
+
+        function pushLine(chars, width) {
+          lines.push({ chars: chars.slice(), width });
+        }
+
+        paragraphs.forEach((paragraph, paragraphIndex) => {
+          const chars = Array.from(paragraph);
+          let current = [];
+          let currentWidth = 0;
+
+          if (chars.length === 0) {
+            pushLine([], 0);
+          } else {
+            chars.forEach((char) => {
+              const glyph = char === "\t" ? "    " : char;
+              const measureChar = glyph === " " ? " " : glyph;
+              const charWidth = ctx.measureText(measureChar).width + spacing.letterGap;
+              const nextWidth = currentWidth + charWidth;
+
+              if (current.length > 0 && nextWidth > maxWidth) {
+                while (current.length > 0 && current[0].char === " ") {
+                  current.shift();
+                }
+                currentWidth = lineWidthOf(current);
+                pushLine(current, currentWidth);
+                current = [];
+                currentWidth = 0;
+              }
+
+              current.push({ char });
+              currentWidth += charWidth;
+            });
+
+            while (current.length > 0 && current[0].char === " ") {
+              current.shift();
+            }
+            currentWidth = lineWidthOf(current);
+            pushLine(current, currentWidth);
+          }
+
+          if (paragraphIndex < paragraphs.length - 1) {
+            pushLine([], 0);
+          }
+        });
+
+        const maxLines = Math.max(1, Math.floor(maxHeight / spacing.lineHeight));
+        let visibleLines = lines;
+        if (lines.length > maxLines) {
+          visibleLines = lines.slice(0, maxLines);
+          const clippedLines = lines.slice(maxLines);
+          hiddenGlyphCount = clippedLines.reduce((count, line) => count + line.chars.length, 0);
+        }
+
+        const totalHeight = visibleLines.length > 0 ? visibleLines.length * spacing.lineHeight : spacing.lineHeight;
+        const startY = region.y + (region.h - totalHeight) / 2 + fontSize;
+
+        const glyphs = [];
+
+        visibleLines.forEach((line, lineIndex) => {
+          let cursorX = region.x + (region.w - line.width) / 2;
+          const baselineY = startY + lineIndex * spacing.lineHeight;
+          const lineCenterX = region.x + region.w / 2;
+
+          line.chars.forEach((entry, charIndex) => {
+            const char = entry.char;
+            const measureChar = char === " " ? " " : char;
+            const width = ctx.measureText(measureChar).width + spacing.letterGap;
+            const centerX = cursorX + width * 0.5;
+
+            glyphs.push({
+              char,
+              baseX: centerX,
+              baseY: baselineY,
+              x: centerX,
+              y: baselineY,
+              vx: 0,
+              vy: 0,
+              rotation: 0,
+              scale: 1,
+              alpha: 0.94,
+              lensX: 0,
+              lensY: 0,
+              sheen: 0,
+              lineCenterX,
+              advance: width,
+              lineIndex,
+              charIndex,
+              seed: Math.random() * Math.PI * 2
+            });
+
+            cursorX += width;
+          });
+        });
+
+        ctx.restore();
+
+        return {
+          region,
+          glyphs,
+          lines: visibleLines,
+          fontSize,
+          hiddenGlyphCount,
+          spacing
+        };
+      }
+
+      function rebuildLayout() {
+        if (!state.width || !state.height) {
+          return;
+        }
+
+        const minFontSize = 14;
+        let trialFont = state.fontSize;
+        let result = layoutTextForFont(trialFont);
+
+        while (result.hiddenGlyphCount > 0 && trialFont > minFontSize) {
+          trialFont -= 1;
+          result = layoutTextForFont(trialFont);
+        }
+
+        state.textRegion = result.region;
+        state.glyphs = result.glyphs;
+        state.lines = result.lines;
+        state.activeFontSize = result.fontSize;
+        state.hiddenGlyphCount = result.hiddenGlyphCount;
+        state.needsLayout = false;
+
+        layoutStatus.textContent = `${Math.round(result.region.w)} × ${Math.round(result.region.h)}`;
+        overflowStatus.textContent = result.hiddenGlyphCount > 0
+          ? `Clipped ${result.hiddenGlyphCount} glyphs`
+          : "All text visible";
+      }
+
+      /* =========================
+         Rain simulation
+         - Slow droplets with gentle trail and light channeling.
+         ========================= */
+      function spawnDroplet() {
+        if (!state.textRegion) {
+          return;
+        }
+
+        const region = state.textRegion;
+        const usePrevious = state.lastSpawnX !== null && Math.random() < 0.34;
+        const channelX = usePrevious
+          ? clamp(state.lastSpawnX + randomRange(-26, 26), region.x + 26, region.x + region.w - 26)
+          : randomRange(region.x + 24, region.x + region.w - 24);
+        const radius = randomRange(5.5, 10.5);
+
+        state.lastSpawnX = channelX;
+        state.droplets.push({
+          x: channelX,
+          y: region.y - radius * 5,
+          radius,
+          speed: randomRange(20, 34),
+          length: randomRange(radius * 7, radius * 13),
+          channelX,
+          sway: randomRange(0.08, 0.22),
+          swayPhase: randomRange(0, Math.PI * 2),
+          alpha: randomRange(0.12, 0.24),
+          trail: []
+        });
+
+        const mobile = window.innerWidth <= 720;
+        const maxDrops = mobile ? 12 : 18;
+        if (state.droplets.length > maxDrops) {
+          state.droplets.shift();
+        }
+      }
+
+      function updateDroplets(dt) {
+        if (state.mode !== "rain") {
+          state.droplets.length = 0;
+          state.rainSpawn = 0;
+          return;
+        }
+
+        state.rainSpawn += dt * (window.innerWidth <= 720 ? 2.2 : 3.2);
+        while (state.rainSpawn >= 1) {
+          state.rainSpawn -= 1;
+          spawnDroplet();
+        }
+
+        const region = state.textRegion;
+        state.droplets = state.droplets.filter((drop) => !region || drop.y - drop.length < region.y + region.h + 60);
+
+        state.droplets.forEach((drop, index) => {
+          drop.swayPhase += dt * 0.42;
+          drop.x = lerp(drop.x, drop.channelX + Math.sin(drop.swayPhase + index) * drop.radius * drop.sway, dt * 1.4);
+          drop.y += drop.speed * dt;
+
+          if (Math.random() < 0.01 && state.droplets[index - 1]) {
+            drop.channelX = lerp(drop.channelX, state.droplets[index - 1].channelX, 0.08);
+          }
+
+          drop.trail.unshift({ x: drop.x, y: drop.y });
+          if (drop.trail.length > 22) {
+            drop.trail.length = 22;
+          }
+        });
+      }
+
+      /* =========================
+         Glyph motion
+         - Mimosa: local contraction and soft retreat.
+         - Rain: subtle lensing and compression around droplets.
+         ========================= */
+      function updateGlyphs(dt) {
+        const pointers = Array.from(state.pointers.values());
+
+        state.glyphs.forEach((glyph) => {
+          let targetX = glyph.baseX;
+          let targetY = glyph.baseY + Math.sin(state.time * 0.22 + glyph.seed) * 0.12;
+          let targetScale = 1;
+          let targetAlpha = 0.94;
+          let targetRotation = 0;
+          let lensX = 0;
+          let lensY = 0;
+          let sheen = 0;
+
+          if (state.mode === "mimosa" && pointers.length > 0) {
+            const radius = clamp(state.activeFontSize * 3.8, 54, 92);
+
+            pointers.forEach((pointer) => {
+              const dx = glyph.baseX - pointer.x;
+              const dy = glyph.baseY - pointer.y;
+              const distance = Math.max(0.001, Math.hypot(dx, dy));
+              if (distance >= radius) {
+                return;
+              }
+
+              const influence = 1 - smoothstep(0, radius, distance);
+              const nx = dx / distance;
+              const ny = dy / distance;
+              const contractX = (glyph.lineCenterX - glyph.baseX) * influence * 0.12;
+              const curl = Math.sin(glyph.seed + glyph.lineIndex * 0.32 + state.time * 1.4) * influence;
+
+              targetX += nx * influence * (state.activeFontSize * 0.48 + 5) + contractX + curl * 1.8;
+              targetY += ny * influence * (state.activeFontSize * 0.24 + 3) - influence * 2.4;
+              targetScale -= influence * 0.16;
+              targetAlpha -= influence * 0.12;
+              targetRotation += curl * 0.045;
+            });
+          }
+
+          if (state.mode === "rain") {
+            state.droplets.forEach((drop) => {
+              const trailY = clamp(glyph.baseY, drop.y - drop.length, drop.y);
+              const dx = glyph.baseX - drop.x;
+              const dy = glyph.baseY - trailY;
+              const distance = Math.hypot(dx / (drop.radius * 4.2), dy / (drop.radius * 3.2));
+              if (distance >= 1) {
+                return;
+              }
+
+              const influence = 1 - smoothstep(0, 1, distance);
+              const wobble = Math.sin(drop.swayPhase + glyph.seed);
+
+              targetX += (-dx * 0.04 + wobble * 1.2) * influence;
+              targetY += influence * drop.radius * 0.22;
+              targetScale -= influence * 0.07;
+              targetAlpha -= influence * 0.08;
+              targetRotation += wobble * influence * 0.015;
+
+              lensX += wobble * influence * 1.25;
+              lensY += influence * 1.2;
+              sheen = Math.max(sheen, influence * 0.9);
+            });
+          }
+
+          const stiffness = state.mode === "mimosa" ? 8.8 : 7.2;
+          const damping = Math.exp(-10 * dt);
+
+          glyph.vx += (targetX - glyph.x) * stiffness * dt;
+          glyph.vy += (targetY - glyph.y) * stiffness * dt;
+          glyph.vx *= damping;
+          glyph.vy *= damping;
+          glyph.x += glyph.vx;
+          glyph.y += glyph.vy;
+          glyph.scale = lerp(glyph.scale, targetScale, Math.min(1, dt * 6));
+          glyph.alpha = lerp(glyph.alpha, targetAlpha, Math.min(1, dt * 5));
+          glyph.rotation = lerp(glyph.rotation, targetRotation, Math.min(1, dt * 5));
+          glyph.lensX = lerp(glyph.lensX, lensX, Math.min(1, dt * 6));
+          glyph.lensY = lerp(glyph.lensY, lensY, Math.min(1, dt * 6));
+          glyph.sheen = lerp(glyph.sheen, sheen, Math.min(1, dt * 6));
+        });
+      }
+
+      /* =========================
+         Rendering
+         ========================= */
+      function drawBackground() {
+        ctx.clearRect(0, 0, state.width, state.height);
+
+        const glow = ctx.createRadialGradient(
+          state.width * 0.5,
+          state.height * 0.46,
+          state.width * 0.08,
+          state.width * 0.5,
+          state.height * 0.46,
+          state.width * 0.62
+        );
+        glow.addColorStop(0, "rgba(255, 255, 255, 0.02)");
+        glow.addColorStop(0.55, "rgba(255, 255, 255, 0.0)");
+        glow.addColorStop(1, "rgba(0, 0, 0, 0.26)");
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, state.width, state.height);
+
+        ctx.save();
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.025)";
+        ctx.lineWidth = 1;
+        for (let x = 0; x < state.width; x += 42) {
+          ctx.beginPath();
+          ctx.moveTo(x + 0.5, 0);
+          ctx.lineTo(x + 0.5, state.height);
+          ctx.stroke();
+        }
+        for (let y = 0; y < state.height; y += 42) {
+          ctx.beginPath();
+          ctx.moveTo(0, y + 0.5);
+          ctx.lineTo(state.width, y + 0.5);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      function drawTextRegion() {
+        if (!state.textRegion) {
+          return;
+        }
+
+        const r = state.textRegion;
+        const radius = 28;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(r.x + radius, r.y);
+        ctx.arcTo(r.x + r.w, r.y, r.x + r.w, r.y + r.h, radius);
+        ctx.arcTo(r.x + r.w, r.y + r.h, r.x, r.y + r.h, radius);
+        ctx.arcTo(r.x, r.y + r.h, r.x, r.y, radius);
+        ctx.arcTo(r.x, r.y, r.x + r.w, r.y, radius);
+        ctx.closePath();
+
+        const fill = ctx.createLinearGradient(r.x, r.y, r.x, r.y + r.h);
+        fill.addColorStop(0, "rgba(255, 255, 255, 0.03)");
+        fill.addColorStop(1, "rgba(255, 255, 255, 0.015)");
+        ctx.fillStyle = fill;
+        ctx.fill();
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.06)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.save();
+        ctx.font = `11px ${HUD_FONT}`;
+        ctx.fillStyle = "rgba(255, 255, 255, 0.36)";
+        ctx.textBaseline = "top";
+        ctx.textAlign = "left";
+        ctx.fillText("TEXT STAGE", r.x + 18, r.y + 16);
+        ctx.textAlign = "right";
+        ctx.fillText(`${state.glyphs.length} glyphs`, r.x + r.w - 18, r.y + 16);
+        ctx.restore();
+      }
+
+      function drawGlyphs() {
+        ctx.save();
+        ctx.font = `500 ${state.activeFontSize}px ${TEXT_FONT}`;
+        ctx.textBaseline = "alphabetic";
+        ctx.shadowColor = "rgba(255, 255, 255, 0.03)";
+        ctx.shadowBlur = 8;
+
+        state.glyphs.forEach((glyph) => {
+          if (glyph.char === " ") {
+            return;
+          }
+
+          ctx.save();
+          ctx.translate(glyph.x, glyph.y);
+          ctx.rotate(glyph.rotation);
+          ctx.scale(glyph.scale, glyph.scale);
+          ctx.globalAlpha = clamp(glyph.alpha, 0.12, 1);
+          ctx.fillStyle = state.textColor;
+          ctx.fillText(glyph.char, -glyph.advance * 0.5, 0);
+
+          if (glyph.sheen > 0.05) {
+            ctx.globalAlpha = glyph.sheen * 0.18;
+            ctx.fillStyle = "rgba(240, 225, 215, 1)";
+            ctx.fillText(glyph.char, -glyph.advance * 0.5 + glyph.lensX, glyph.lensY);
+          }
+
+          ctx.restore();
+        });
+
+        ctx.restore();
+      }
+
+      function drawRain() {
+        if (state.mode !== "rain") {
+          return;
+        }
+
+        ctx.save();
+        state.droplets.forEach((drop) => {
+          if (drop.trail.length < 2) {
+            return;
+          }
+
+          const topY = drop.y - drop.length;
+          const trailGradient = ctx.createLinearGradient(drop.x, topY, drop.x, drop.y);
+          trailGradient.addColorStop(0, "rgba(255, 255, 255, 0)");
+          trailGradient.addColorStop(0.4, `rgba(255, 228, 214, ${drop.alpha * 0.45})`);
+          trailGradient.addColorStop(1, `rgba(255, 248, 241, ${drop.alpha})`);
+
+          ctx.beginPath();
+          ctx.moveTo(drop.trail[drop.trail.length - 1].x, drop.trail[drop.trail.length - 1].y);
+          for (let index = drop.trail.length - 2; index >= 0; index -= 1) {
+            const current = drop.trail[index];
+            const next = drop.trail[index + 1];
+            const midX = (current.x + next.x) * 0.5;
+            const midY = (current.y + next.y) * 0.5;
+            ctx.quadraticCurveTo(current.x, current.y, midX, midY);
+          }
+          ctx.lineCap = "round";
+          ctx.lineJoin = "round";
+          ctx.strokeStyle = trailGradient;
+          ctx.lineWidth = drop.radius * 1.2;
+          ctx.shadowColor = `rgba(255, 232, 215, ${drop.alpha * 0.42})`;
+          ctx.shadowBlur = drop.radius * 1.1;
+          ctx.stroke();
+
+          ctx.shadowBlur = 0;
+          ctx.strokeStyle = `rgba(255, 255, 255, ${drop.alpha * 0.62})`;
+          ctx.lineWidth = Math.max(1, drop.radius * 0.22);
+          ctx.stroke();
+
+          const head = ctx.createRadialGradient(
+            drop.x - drop.radius * 0.18,
+            drop.y - drop.radius * 0.26,
+            drop.radius * 0.08,
+            drop.x,
+            drop.y,
+            drop.radius * 1.4
+          );
+          head.addColorStop(0, `rgba(255, 255, 255, ${drop.alpha * 1.5})`);
+          head.addColorStop(0.45, `rgba(255, 236, 220, ${drop.alpha * 0.82})`);
+          head.addColorStop(1, "rgba(255, 245, 235, 0)");
+
+          ctx.beginPath();
+          ctx.fillStyle = head;
+          ctx.arc(drop.x, drop.y, drop.radius, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        ctx.restore();
+      }
+
+      function render() {
+        drawBackground();
+        drawTextRegion();
+        drawGlyphs();
+        drawRain();
+      }
+
+      /* =========================
+         Events
+         ========================= */
+      function applyTextUpdate(value) {
+        state.sourceText = String(value || "").trim() ? value : DEFAULT_TEXT;
+        state.needsLayout = true;
+      }
+
+      startButton.addEventListener("click", () => {
+        activateWorkspace(false);
+      });
+
+      backButton.addEventListener("click", () => {
+        activateLanding();
+      });
+
+      textInput.addEventListener("input", () => {
+        applyTextUpdate(textInput.value);
+      });
+
+      sampleButton.addEventListener("click", () => {
+        textInput.value = DEFAULT_TEXT;
+        applyTextUpdate(DEFAULT_TEXT);
+      });
+
+      fileInput.addEventListener("change", async () => {
+        const [file] = fileInput.files || [];
+        if (!file) {
+          return;
+        }
+
+        try {
+          const text = await file.text();
+          textInput.value = text;
+          applyTextUpdate(text);
+        } finally {
+          fileInput.value = "";
+        }
+      });
+
+      colorInput.addEventListener("input", () => {
+        state.textColor = colorInput.value;
+      });
+
+      fontSizeInput.addEventListener("input", () => {
+        state.fontSize = Number(fontSizeInput.value);
+        updateLabels();
+        state.needsLayout = true;
+      });
+
+      densityInput.addEventListener("input", () => {
+        state.density = Number(densityInput.value);
+        updateLabels();
+        state.needsLayout = true;
+      });
+
+      modeButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const nextMode = button.dataset.mode;
+          if (!nextMode || nextMode === state.mode) {
+            return;
+          }
+          state.mode = nextMode;
+          state.pointers.clear();
+          state.droplets.length = 0;
+          state.rainSpawn = 0;
+          modeButtons.forEach((item) => {
+            item.classList.toggle("is-active", item.dataset.mode === nextMode);
+          });
+          updateLabels();
+        });
+      });
+
+      canvas.addEventListener("pointerdown", (event) => {
+        if (state.view !== "workspace") {
+          return;
+        }
+        if (event.cancelable) {
+          event.preventDefault();
+        }
+        state.pointers.set(event.pointerId, pointFromEvent(event));
+        if (canvas.setPointerCapture) {
+          canvas.setPointerCapture(event.pointerId);
+        }
+      });
+
+      canvas.addEventListener("pointermove", (event) => {
+        if (!state.pointers.has(event.pointerId)) {
+          return;
+        }
+        if (event.cancelable) {
+          event.preventDefault();
+        }
+        state.pointers.set(event.pointerId, pointFromEvent(event));
+      });
+
+      function releasePointer(event) {
+        state.pointers.delete(event.pointerId);
+      }
+
+      canvas.addEventListener("pointerup", releasePointer);
+      canvas.addEventListener("pointercancel", releasePointer);
+      canvas.addEventListener("pointerleave", (event) => {
+        if (event.pointerType === "mouse" && event.buttons === 0) {
+          releasePointer(event);
+        }
+      });
+
+      window.addEventListener("resize", queueResize);
+      window.addEventListener("orientationchange", queueResize);
+
+      /* =========================
+         Animation loop
+         ========================= */
+      function frame(now) {
+        const dt = Math.min(0.033, (now - state.lastFrame) / 1000 || 0.016);
+        state.lastFrame = now;
+        state.time += dt;
+
+        if (state.needsLayout) {
+          rebuildLayout();
+        }
+
+        updateDroplets(dt);
+        updateGlyphs(dt);
+        render();
+        requestAnimationFrame(frame);
+      }
+
+      /* =========================
+         Start up
+         ========================= */
+      updateLabels();
+      resizeCanvas();
+      if (location.hash === "#workspace") {
+        activateWorkspace(true);
+      }
+      requestAnimationFrame(frame);
+    })();
+  </script>
+</body>
+</html>
