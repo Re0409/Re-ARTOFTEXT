@@ -60,6 +60,10 @@
       box-sizing: border-box;
     }
 
+    [hidden] {
+      display: none !important;
+    }
+
     html,
     body {
       margin: 0;
@@ -961,14 +965,14 @@
                   <span class="field-label">Width</span>
                   <span class="field-value" id="canvasWidthValue">76%</span>
                 </div>
-                <input class="range-input" id="canvasWidthInput" type="range" min="0.54" max="0.92" step="0.01" value="0.76" />
+                <input class="range-input" id="canvasWidthInput" type="range" min="0.54" max="0.97" step="0.01" value="0.76" />
               </div>
               <div class="range-wrap">
                 <div class="field-row">
                   <span class="field-label">Height</span>
                   <span class="field-value" id="canvasHeightValue">68%</span>
                 </div>
-                <input class="range-input" id="canvasHeightInput" type="range" min="0.42" max="0.86" step="0.01" value="0.68" />
+                <input class="range-input" id="canvasHeightInput" type="range" min="0.42" max="0.94" step="0.01" value="0.68" />
               </div>
             </div>
           </div>
@@ -1035,7 +1039,7 @@
                 <span class="field-label">Size</span>
                   <span class="field-value" id="fontSizeValue">22 px</span>
                 </div>
-                <input class="range-input" id="fontSizeInput" type="range" min="16" max="42" step="1" value="22" />
+                <input class="range-input" id="fontSizeInput" type="range" min="16" max="56" step="1" value="22" />
             </div>
 
             <div class="range-wrap">
@@ -1043,7 +1047,7 @@
                 <span class="field-label">Line / Density</span>
                 <span class="field-value" id="densityValue">1.00 x</span>
               </div>
-              <input class="range-input" id="densityInput" type="range" min="0.82" max="1.28" step="0.01" value="1.00" />
+              <input class="range-input" id="densityInput" type="range" min="0.82" max="1.5" step="0.01" value="1.00" />
             </div>
           </div>
         </aside>
@@ -1375,8 +1379,8 @@
       }
 
       function getTextRegion() {
-        const padX = clamp(state.width * 0.08, 24, 84);
-        const padY = clamp(state.height * 0.1, 26, 96);
+        const padX = clamp(state.width * 0.05, 16, 58);
+        const padY = clamp(state.height * 0.065, 20, 68);
         const maxWidth = Math.max(220, state.width - padX * 2);
         const maxHeight = Math.max(180, state.height - padY * 2);
         const width = clamp(maxWidth * state.canvasWidthScale, 220, maxWidth);
@@ -1392,8 +1396,8 @@
       }
 
       function getInnerRegion(region) {
-        const padX = clamp(region.w * 0.065, 18, 30);
-        const padY = clamp(region.h * 0.08, 18, 30);
+        const padX = clamp(region.w * 0.055, 14, 24);
+        const padY = clamp(region.h * 0.065, 14, 24);
         return {
           x: region.x + padX,
           y: region.y + padY,
@@ -1596,8 +1600,8 @@
          - Keep all glyphs inside one centered rectangle.
          ========================= */
       function getTextRegion() {
-        const padX = clamp(state.width * 0.08, 24, 84);
-        const padY = clamp(state.height * 0.1, 26, 96);
+        const padX = clamp(state.width * 0.05, 16, 58);
+        const padY = clamp(state.height * 0.065, 20, 68);
         const maxWidth = Math.max(220, state.width - padX * 2);
         const maxHeight = Math.max(180, state.height - padY * 2);
         const width = clamp(maxWidth * state.canvasWidthScale, 220, maxWidth);
@@ -1959,14 +1963,14 @@
         state.snowflakes.push({
           x: state.textRegion.x + 18 + Math.random() * Math.max(36, state.textRegion.w - 36),
           y: state.textRegion.y - (10 + Math.random() * 90),
-          vx: (Math.random() - 0.5) * 3.6,
-          vy: 16 + Math.random() * 16,
-          radius: 5.4 + Math.random() * 5.8,
-          alpha: 0.66 + Math.random() * 0.24,
+          vx: (Math.random() - 0.5) * 2.4,
+          vy: 10 + Math.random() * 12,
+          radius: 5.8 + Math.random() * 4.6,
+          alpha: 0.72 + Math.random() * 0.18,
           driftPhase: Math.random() * Math.PI * 2,
-          driftSpeed: 0.38 + Math.random() * 0.5,
-          driftAmp: 2.2 + Math.random() * 4.8,
-          wobble: 0.3 + Math.random() * 0.7
+          driftSpeed: 0.24 + Math.random() * 0.28,
+          driftAmp: 3.4 + Math.random() * 5.2,
+          wobble: 0.22 + Math.random() * 0.48
         });
       }
 
@@ -1980,7 +1984,7 @@
         state.snowSpawn -= dt;
         while (state.snowSpawn <= 0) {
           spawnSnowflake();
-          state.snowSpawn += 0.24 + Math.random() * 0.18;
+          state.snowSpawn += 0.38 + Math.random() * 0.28;
         }
 
         const region = state.textRegion;
@@ -2117,25 +2121,26 @@
 
           if (state.mode === "snow") {
             state.snowflakes.forEach((flake) => {
-              const dx = glyph.baseX - flake.x;
+              const flakeX = flake.x + Math.sin(state.time * (0.8 + flake.wobble) + flake.driftPhase) * flake.radius * 0.42;
+              const dx = glyph.baseX - flakeX;
               const dy = glyph.baseY - flake.y;
-              const radiusX = 12 + flake.radius * 4.8;
-              const radiusY = 12 + flake.radius * 4.8;
+              const radiusX = 18 + flake.radius * 5.8;
+              const radiusY = 18 + flake.radius * 5.6;
               const distance = Math.hypot(dx / radiusX, dy / radiusY);
               if (distance >= 1) {
                 return;
               }
 
-              const influence = Math.pow(1 - distance, 1.28) * flake.alpha;
-              targetX += flake.vx * influence * 0.48 - dx * influence * 0.06;
-              targetY += influence * 1.6;
-              targetScale -= influence * 0.05;
-              targetAlpha -= influence * 0.08;
-              targetRotation += flake.vx * 0.0024 * influence;
+              const influence = Math.pow(1 - distance, 1.18) * flake.alpha;
+              targetX += flake.vx * influence * 0.96 - dx * influence * 0.11;
+              targetY += influence * 2.8;
+              targetScale -= influence * 0.09;
+              targetAlpha -= influence * 0.12;
+              targetRotation += (flake.vx * 0.0052 - dx * 0.0008) * influence;
 
-              lensX += -dx * 0.03 * influence;
-              lensY += -0.28 * influence;
-              sheen = Math.max(sheen, influence * 0.2);
+              lensX += -dx * 0.055 * influence;
+              lensY += -0.52 * influence;
+              sheen = Math.max(sheen, influence * 0.34);
             });
           }
 
@@ -2234,31 +2239,58 @@
       }
 
       function drawCurtainThreads() {
-        if (state.mode !== "curtain" || !state.textRegion) {
+        if (state.mode !== "curtain" || !state.textRegion || !state.glyphs.length) {
           return;
         }
 
-        const region = state.textRegion;
+        const isVertical = state.layoutOrientation === "vertical";
+        const groups = new Map();
+        state.glyphs.forEach((glyph) => {
+          if (glyph.char === " ") {
+            return;
+          }
+          const key = isVertical ? `v-${glyph.columnIndex}` : `h-${glyph.lineIndex}`;
+          if (!groups.has(key)) {
+            groups.set(key, []);
+          }
+          groups.get(key).push(glyph);
+        });
+
         ctx.save();
         ctx.strokeStyle = state.theme.thread;
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 1.05;
         ctx.lineCap = "round";
-        state.curtainColumns.forEach((column) => {
-          const foldX = column.angle * column.motionX * 0.46;
-          const topY = region.y + 12;
-          const bottomY = region.y + region.h - 12;
-          const midY = (topY + bottomY) * 0.5;
-          ctx.beginPath();
-          ctx.moveTo(column.baseX, topY);
-          ctx.bezierCurveTo(
-            column.baseX + foldX * 0.35,
-            topY + region.h * 0.24,
-            column.baseX + foldX * 0.92,
-            midY,
-            column.baseX + foldX,
-            bottomY
-          );
-          ctx.stroke();
+        groups.forEach((group) => {
+          group.sort((a, b) => {
+            if (isVertical) {
+              return a.baseY - b.baseY;
+            }
+            return state.readingDirection === "rtl" ? b.baseX - a.baseX : a.baseX - b.baseX;
+          });
+
+          for (let index = 0; index < group.length - 1; index += 1) {
+            const current = group[index];
+            const next = group[index + 1];
+            const dx = next.x - current.x;
+            const dy = next.y - current.y;
+            const distance = Math.hypot(dx, dy);
+            const maxGap = isVertical
+              ? Math.max(state.activeFontSize * 2.2, 34)
+              : Math.max(state.activeFontSize * 1.7, 28);
+
+            if (distance < 3 || distance > maxGap) {
+              continue;
+            }
+
+            const nx = dx / distance;
+            const ny = dy / distance;
+            const inset = Math.min(state.activeFontSize * 0.34, distance * 0.26);
+
+            ctx.beginPath();
+            ctx.moveTo(current.x + nx * inset, current.y + ny * inset);
+            ctx.lineTo(next.x - nx * inset, next.y - ny * inset);
+            ctx.stroke();
+          }
         });
         ctx.restore();
       }
@@ -2304,6 +2336,7 @@
         ctx.save();
         state.snowflakes.forEach((flake) => {
           const driftX = Math.sin(state.time * (0.8 + flake.wobble) + flake.driftPhase) * flake.radius * 0.42;
+          const spin = state.time * (0.16 + flake.wobble * 0.08) + flake.driftPhase;
           const flakeGradient = ctx.createRadialGradient(
             flake.x - flake.radius * 0.28,
             flake.y - flake.radius * 0.34,
@@ -2324,6 +2357,19 @@
           ctx.fillStyle = flakeGradient;
           ctx.arc(flake.x + driftX, flake.y, flake.radius, 0, Math.PI * 2);
           ctx.fill();
+
+          const armLength = flake.radius * 0.95;
+          ctx.beginPath();
+          ctx.strokeStyle = `rgba(255, 255, 255, ${Math.min(0.82, flake.alpha + 0.04)})`;
+          ctx.lineWidth = Math.max(0.9, flake.radius * 0.12);
+          for (let arm = 0; arm < 3; arm += 1) {
+            const angle = spin + arm * (Math.PI / 3);
+            const ax = Math.cos(angle) * armLength;
+            const ay = Math.sin(angle) * armLength;
+            ctx.moveTo(flake.x + driftX - ax, flake.y - ay);
+            ctx.lineTo(flake.x + driftX + ax, flake.y + ay);
+          }
+          ctx.stroke();
 
           ctx.shadowBlur = 0;
           ctx.beginPath();
