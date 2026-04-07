@@ -1704,6 +1704,7 @@
         perchClusters: [],
         perchTemplate: null,
         returnRevealRadius: 136,
+        returnRipples: [],
         redLinks: [],
         redGroups: [],
         gusts: [],
@@ -1775,6 +1776,24 @@
         }
         if (legacyTextColor) {
           legacyTextColor.value = normalizeHex(state.surfaceText, DEFAULT_THEME.text);
+        }
+      }
+
+      function spawnReturnRipple(point) {
+        if (state.mode !== "return" || !state.textRegion) {
+          return;
+        }
+
+        state.returnRipples.push({
+          x: point.x,
+          y: point.y,
+          radius: Math.max(state.activeFontSize * 0.8, 12),
+          maxRadius: state.returnRevealRadius * 1.18,
+          alpha: 1
+        });
+
+        if (state.returnRipples.length > 12) {
+          state.returnRipples.splice(0, state.returnRipples.length - 12);
         }
       }
 
@@ -2196,6 +2215,7 @@
           localY: 0,
           dropped: false,
           fade: 1,
+          returnSettled: 0,
           redGroup: -1,
           redDropped: false,
           redFading: false
@@ -2720,13 +2740,13 @@
       }
 
       function getLeafPattern(fontSize, variant) {
-        const scale = fontSize * 0.34;
+        const scale = fontSize * 0.52;
         const scaleX = scale * clamp(state.columnGapScale || 1, 0.72, 1.8);
         const scaleY = scale * clamp(state.rowGapScale || 1, 0.72, 1.8);
         const patterns = [
-          [[0, -2.3], [1.2, -1.1], [1.55, 0], [0.95, 1.15], [0, 1.7], [-0.95, 1.15], [-1.55, 0], [-1.2, -1.1]],
-          [[0, -2.05], [1.05, -0.8], [1.35, 0.35], [0.55, 1.45], [-0.55, 1.45], [-1.35, 0.35], [-1.05, -0.8]],
-          [[0, -1.8], [0.8, -0.6], [1.2, 0.55], [0.55, 1.45], [-0.55, 1.45], [-1.2, 0.55], [-0.8, -0.6]]
+          [[0, -2.6], [1.65, -1.85], [2.45, -0.72], [2.15, 0.6], [1.2, 1.7], [0, 2.34], [-1.2, 1.7], [-2.15, 0.6], [-2.45, -0.72], [-1.65, -1.85]],
+          [[0, -2.35], [1.42, -1.54], [2.18, -0.28], [1.76, 1.08], [0.8, 2.06], [-0.8, 2.06], [-1.76, 1.08], [-2.18, -0.28], [-1.42, -1.54]],
+          [[0, -2.12], [1.22, -1.28], [1.96, -0.16], [1.58, 1.12], [0.62, 1.94], [-0.62, 1.94], [-1.58, 1.12], [-1.96, -0.16], [-1.22, -1.28]]
         ];
         return (patterns[variant % patterns.length] || patterns[0]).map(([x, y]) => ({
           x: x * scaleX,
@@ -2744,6 +2764,62 @@
         };
       }
 
+      function getPerchAnchors(template, count) {
+        if (count <= 0) {
+          return [];
+        }
+
+        const bounds = template.canopy.reduce((acc, lobe) => ({
+          minX: Math.min(acc.minX, lobe.cx - lobe.rx),
+          maxX: Math.max(acc.maxX, lobe.cx + lobe.rx),
+          minY: Math.min(acc.minY, lobe.cy - lobe.ry),
+          maxY: Math.max(acc.maxY, lobe.cy + lobe.ry)
+        }), {
+          minX: Number.POSITIVE_INFINITY,
+          maxX: Number.NEGATIVE_INFINITY,
+          minY: Number.POSITIVE_INFINITY,
+          maxY: Number.NEGATIVE_INFINITY
+        });
+
+        const points = [];
+        const cols = clamp(Math.ceil(Math.sqrt(count) * 1.75), 3, 10);
+        const rows = Math.max(1, Math.ceil(count / cols));
+        const stepX = (bounds.maxX - bounds.minX) / (cols + 1);
+        const stepY = (bounds.maxY - bounds.minY) / (rows + 1);
+
+        for (let row = 0; row < rows + 3 && points.length < count; row += 1) {
+          const y = bounds.minY + stepY * (row + 1);
+          const offsetX = row % 2 === 0 ? 0 : stepX * 0.46;
+
+          for (let col = 0; col < cols && points.length < count; col += 1) {
+            let x = bounds.minX + stepX * (col + 1) + offsetX;
+            if (x > bounds.maxX - stepX * 0.2) {
+              x -= stepX * 0.42;
+            }
+
+            const inside = template.canopy.some((lobe) => {
+              const dx = (x - lobe.cx) / Math.max(1, lobe.rx * 0.98);
+              const dy = (y - lobe.cy) / Math.max(1, lobe.ry * 0.9);
+              return dx * dx + dy * dy <= 1;
+            });
+
+            if (!inside) {
+              continue;
+            }
+
+            points.push({ x, y });
+          }
+        }
+
+        let fallbackIndex = 0;
+        while (points.length < count) {
+          points.push(getPerchAnchor(template, fallbackIndex));
+          fallbackIndex += 1;
+        }
+
+        return points.slice(0, count);
+      }
+
       function layoutPerch(fontSize) {
         const region = getTextRegion();
         const spacing = getSpacingConfig(fontSize);
@@ -2755,12 +2831,21 @@
         let cursor = 0;
         let hiddenGlyphCount = trunkLayout.hiddenGlyphCount;
         let clusterIndex = 0;
+        let remainingLeafs = leafChars.length;
+        let totalClusters = 0;
+
+        while (remainingLeafs > 0) {
+          remainingLeafs -= getLeafPattern(fontSize, totalClusters).length;
+          totalClusters += 1;
+        }
+
+        const anchors = getPerchAnchors(template, totalClusters);
 
         while (cursor < leafChars.length) {
           const pattern = getLeafPattern(fontSize, clusterIndex);
           const remaining = leafChars.length - cursor;
           const charCount = Math.min(pattern.length, remaining);
-          const anchor = getPerchAnchor(template, clusterIndex);
+          const anchor = anchors[clusterIndex] || getPerchAnchor(template, clusterIndex);
           const cluster = {
             index: clusterIndex,
             baseX: anchor.x,
@@ -2848,6 +2933,7 @@
           glyph.y = glyph.scrambledY;
           glyph.rotation = (Math.random() - 0.5) * 0.5;
           glyph.alpha = 0.72;
+          glyph.returnSettled = 0;
         });
 
         return baseLayout;
@@ -2951,6 +3037,7 @@
         state.curtainColumns = result.curtainColumns || [];
         state.perchClusters = result.perchClusters || [];
         state.perchTemplate = result.perchTemplate || null;
+        state.returnRipples = [];
         state.redLinks = result.redLinks || [];
         state.redGroups = result.redGroups || [];
         state.needsLayout = false;
@@ -3197,42 +3284,57 @@
         return Math.hypot(px - sx, py - sy);
       }
 
-      function breakScarletGroup(groupId, pointer) {
-        const group = state.redGroups[groupId];
-        if (!group || group.broken) {
-          return;
-        }
-        group.broken = true;
-        state.redLinks.forEach((link) => {
-          if (link.groupId === groupId) {
-            link.broken = true;
-          }
-        });
+      function dropScarletGlyph(glyphIndex, pointer, order) {
         const motionX = pointer ? (pointer.x - pointer.px) : 0;
         const motionY = pointer ? (pointer.y - pointer.py) : 0;
-        group.indices.forEach((glyphIndex, order) => {
-          const glyph = state.glyphs[glyphIndex];
-          if (!glyph) {
-            return;
+        const glyph = state.glyphs[glyphIndex];
+        if (!glyph || glyph.redDropped) {
+          return;
+        }
+        glyph.redDropped = true;
+        glyph.redFading = false;
+        glyph.fade = 1;
+        glyph.vx = motionX * 0.045 + (Math.random() - 0.5) * 1.15 + (order === 0 ? -0.14 : 0.14);
+        glyph.vy = motionY * 0.03 - (0.24 + Math.random() * 0.38);
+      }
+
+      function breakScarletLink(link, pointer) {
+        if (!link || link.broken) {
+          return false;
+        }
+
+        link.broken = true;
+        const group = state.redGroups[link.groupId];
+        if (group) {
+          group.brokenCount = (group.brokenCount || 0) + 1;
+          if (group.brokenCount >= Math.max(1, group.indices.length - 1)) {
+            group.broken = true;
           }
-          glyph.redDropped = true;
-          glyph.redFading = false;
-          glyph.fade = 1;
-          glyph.vx = motionX * 0.06 + (Math.random() - 0.5) * 1.8 + order * 0.03;
-          glyph.vy = motionY * 0.04 - (0.3 + Math.random() * 0.7);
+        }
+
+        [link.a, link.b].forEach((glyphIndex, order) => {
+          const stillLinked = state.redLinks.some((item) =>
+            !item.broken && (item.a === glyphIndex || item.b === glyphIndex)
+          );
+          if (!stillLinked) {
+            dropScarletGlyph(glyphIndex, pointer, order);
+          }
         });
+
+        return true;
       }
 
       function updateScarletLinks(dt, pointers) {
         if (state.mode !== "scarlet" || !state.redLinks.length) {
           return;
         }
-        const threshold = Math.max(540, state.activeFontSize * 24);
+        const threshold = Math.max(700, state.activeFontSize * 28);
         pointers.forEach((pointer) => {
           const speed = Math.hypot(pointer.x - pointer.px, pointer.y - pointer.py) / Math.max(dt, 0.016);
           if (speed < threshold) {
             return;
           }
+          const candidates = [];
           state.redLinks.forEach((link) => {
             if (link.broken) {
               return;
@@ -3244,9 +3346,16 @@
             }
             const dist = pointSegmentDistance(pointer.x, pointer.y, a.x, a.y, b.x, b.y);
             if (dist <= Math.max(state.activeFontSize * 0.52, 18)) {
-              breakScarletGroup(link.groupId, pointer);
+              candidates.push({ link, dist });
             }
           });
+
+          candidates
+            .sort((left, right) => left.dist - right.dist)
+            .slice(0, 3)
+            .forEach(({ link }) => {
+              breakScarletLink(link, pointer);
+            });
         });
 
         state.redLinks.forEach((link) => {
@@ -3274,6 +3383,12 @@
           updateCurtainColumns(dt, pointers);
         } else if (state.mode === "perch") {
           updatePerchClusters(dt);
+        } else if (state.mode === "return") {
+          state.returnRipples = state.returnRipples.filter((ripple) => {
+            ripple.radius += dt * state.activeFontSize * 9.2;
+            ripple.alpha -= dt * 0.52;
+            return ripple.alpha > 0.03 && ripple.radius < ripple.maxRadius;
+          });
         } else if (state.mode === "scarlet") {
           updateScarletLinks(dt, pointers);
         }
@@ -3361,7 +3476,7 @@
           }
 
           if (state.mode === "return") {
-            let reveal = 0;
+            let reveal = glyph.returnSettled || 0;
             pointers.forEach((pointer) => {
               const dx = glyph.orderedX - pointer.x;
               const dy = glyph.orderedY - pointer.y;
@@ -3369,8 +3484,22 @@
               if (distance > state.returnRevealRadius) {
                 return;
               }
-              reveal = Math.max(reveal, Math.pow(1 - distance / state.returnRevealRadius, 1.6));
+              const influence = Math.pow(1 - distance / state.returnRevealRadius, 1.6);
+              glyph.returnSettled = Math.max(glyph.returnSettled || 0, Math.min(1, influence * 0.94));
+              reveal = Math.max(reveal, influence);
             });
+            state.returnRipples.forEach((ripple) => {
+              const dx = glyph.orderedX - ripple.x;
+              const dy = glyph.orderedY - ripple.y;
+              const distance = Math.hypot(dx, dy);
+              if (distance > ripple.radius) {
+                return;
+              }
+              const influence = Math.pow(1 - distance / Math.max(1, ripple.radius), 1.85) * ripple.alpha;
+              glyph.returnSettled = Math.max(glyph.returnSettled || 0, Math.min(1, influence * 1.42 + 0.04));
+              reveal = Math.max(reveal, influence);
+            });
+            reveal = Math.max(reveal, glyph.returnSettled || 0);
             targetX = glyph.scrambledX + (glyph.orderedX - glyph.scrambledX) * reveal;
             targetY = glyph.scrambledY + (glyph.orderedY - glyph.scrambledY) * reveal;
             targetRotation = (1 - reveal) * Math.sin(glyph.seed * 2.4) * 0.38;
@@ -3553,7 +3682,7 @@
       }
 
       function drawReturnReveal() {
-        if (state.mode !== "return" || !state.pointers.size) {
+        if (state.mode !== "return" || (!state.pointers.size && !state.returnRipples.length)) {
           return;
         }
         ctx.save();
@@ -3573,6 +3702,23 @@
           ctx.fillStyle = gradient;
           ctx.beginPath();
           ctx.arc(pointer.x, pointer.y, state.returnRevealRadius, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        state.returnRipples.forEach((ripple) => {
+          const gradient = ctx.createRadialGradient(
+            ripple.x,
+            ripple.y,
+            0,
+            ripple.x,
+            ripple.y,
+            ripple.radius
+          );
+          gradient.addColorStop(0, `rgba(255,255,255,${0.16 * ripple.alpha})`);
+          gradient.addColorStop(0.48, `rgba(255,255,255,${0.08 * ripple.alpha})`);
+          gradient.addColorStop(1, "rgba(255,255,255,0)");
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.arc(ripple.x, ripple.y, ripple.radius, 0, Math.PI * 2);
           ctx.fill();
         });
         ctx.restore();
@@ -3997,6 +4143,9 @@
         }
         const point = pointFromEvent(event);
         state.pointers.set(event.pointerId, point);
+        if (state.mode === "return") {
+          spawnReturnRipple(point);
+        }
         if (event.pointerType === "mouse") {
           state.hoverPointer = { ...point, strength: 0.7 };
         }
