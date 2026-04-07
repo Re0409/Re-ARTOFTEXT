@@ -77,6 +77,7 @@
       font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
       overflow-x: hidden;
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     body::before {
@@ -280,11 +281,12 @@
     }
 
     .entry-button.is-secondary {
-      background: rgba(255, 255, 255, 0.05);
+      background:
+        linear-gradient(180deg, rgba(239, 118, 67, 0.96), rgba(212, 93, 46, 0.98));
       box-shadow:
-        0 16px 30px rgba(0, 0, 0, 0.2),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08);
-      color: var(--module-text);
+        0 18px 34px rgba(227, 104, 56, 0.24),
+        inset 0 1px 0 rgba(255, 255, 255, 0.24);
+      color: var(--button-text);
     }
 
     /* =========================
@@ -890,6 +892,7 @@
       margin: 0 auto;
       padding: 12px 12px calc(18px + env(safe-area-inset-bottom, 0px));
       gap: 12px;
+      overscroll-behavior-y: contain;
     }
 
     .app.device-mobile .workspace-header {
@@ -928,17 +931,16 @@
     }
 
     .app.device-mobile .stage-shell {
-      min-height: 60vh;
-      height: 60vh;
+      min-height: 68vh;
+      height: 68vh;
     }
 
     .app.device-mobile .control-panel {
       order: 2;
-      position: sticky;
-      bottom: 8px;
-      max-height: 44vh;
-      overflow: auto;
-      padding-bottom: calc(4px + env(safe-area-inset-bottom, 0px));
+      position: static;
+      max-height: none;
+      overflow: visible;
+      padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
     }
 
     .app.device-mobile .panel-topline,
@@ -1172,7 +1174,7 @@
                 <span class="field-label">Size</span>
                   <span class="field-value" id="fontSizeValue">22 px</span>
                 </div>
-                <input class="range-input" id="fontSizeInput" type="range" min="16" max="56" step="1" value="22" />
+                <input class="range-input" id="fontSizeInput" type="range" min="10" max="72" step="1" value="22" />
             </div>
 
             <div class="range-wrap">
@@ -1454,6 +1456,28 @@
         if (deviceModeChip) {
           deviceModeChip.textContent = state.deviceMode === "mobile" ? "Mobile" : "Computer";
         }
+        canvas.style.touchAction = state.deviceMode === "mobile" ? "manipulation" : "none";
+      }
+
+      function applyDevicePreset(mode) {
+        if (mode === "mobile") {
+          state.fontSize = 18;
+          state.canvasWidthScale = 0.96;
+          state.canvasHeightScale = 0.92;
+          state.density = 0.96;
+        } else {
+          state.fontSize = 22;
+          state.canvasWidthScale = 0.76;
+          state.canvasHeightScale = 0.68;
+          state.density = 1;
+        }
+
+        fontSizeInput.value = String(state.fontSize);
+        canvasWidthInput.value = state.canvasWidthScale.toFixed(2);
+        canvasHeightInput.value = state.canvasHeightScale.toFixed(2);
+        densityInput.value = state.density.toFixed(2);
+        updateLabels();
+        state.needsLayout = true;
       }
 
       function roundRectPath(context, x, y, w, h, radius) {
@@ -2601,10 +2625,12 @@
       }
 
       desktopEntryButton.addEventListener("click", () => {
+        applyDevicePreset("desktop");
         activateWorkspace(false, "desktop");
       });
 
       mobileEntryButton.addEventListener("click", () => {
+        applyDevicePreset("mobile");
         activateWorkspace(false, "mobile");
       });
 
@@ -2736,7 +2762,7 @@
         if (state.view !== "workspace") {
           return;
         }
-        if (event.cancelable) {
+        if (event.cancelable && !(state.deviceMode === "mobile" && event.pointerType !== "mouse")) {
           event.preventDefault();
         }
         const point = pointFromEvent(event);
@@ -2758,7 +2784,7 @@
         if (!state.pointers.has(event.pointerId)) {
           return;
         }
-        if (event.cancelable) {
+        if (event.cancelable && !(state.deviceMode === "mobile" && event.pointerType !== "mouse")) {
           event.preventDefault();
         }
         const previous = state.pointers.get(event.pointerId);
@@ -2823,6 +2849,7 @@
          ========================= */
       setStaticCopy();
       applyDeviceMode("desktop");
+      applyDevicePreset("desktop");
       syncSurfaceTheme();
       syncColorInputs();
       state.sourceText = CANONICAL_DEFAULT_TEXT;
@@ -2830,8 +2857,10 @@
       updateLabels();
       resizeCanvas();
       if (location.hash === "#workspace-mobile") {
+        applyDevicePreset("mobile");
         activateWorkspace(true, "mobile");
       } else if (location.hash === "#workspace") {
+        applyDevicePreset("desktop");
         activateWorkspace(true, "desktop");
       }
       requestAnimationFrame(frame);
