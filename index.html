@@ -1001,8 +1001,8 @@
         <p class="landing-copy">把文本放进一个被触碰会轻微闭合、被雨痕缓慢扰动的互动文字装置里。</p>
         <p class="landing-note">创意投稿和错误反馈地址：3342784909@qq.com</p>
         <div class="landing-actions">
-          <button class="start-button entry-button" id="desktopEntryButton" type="button">Computer</button>
-          <button class="start-button entry-button is-secondary" id="mobileEntryButton" type="button">Mobile</button>
+          <button class="start-button entry-button" id="desktopEntryButton" type="button">电脑版</button>
+          <button class="start-button entry-button is-secondary" id="mobileEntryButton" type="button">手机版</button>
         </div>
       </div>
     </section>
@@ -1016,18 +1016,18 @@
         </div>
         <div class="header-tools">
           <span class="header-chip">Re</span>
-          <span class="header-chip" id="deviceModeChip">Computer</span>
-          <button class="back-button" id="backButton" type="button">Back</button>
+          <span class="header-chip" id="deviceModeChip">电脑版</span>
+          <button class="back-button" id="backButton" type="button">返回</button>
         </div>
       </header>
 
       <div class="workspace-body">
         <section class="stage-card">
           <div class="stage-topline">
-            <span class="tiny-label">Central Text Surface</span>
+            <span class="tiny-label">中央文字画布</span>
             <div class="stage-status">
               <span class="status-dot"></span>
-              <span id="modeStatus">Mimosa</span>
+              <span id="modeStatus">含羞</span>
             </div>
 
           </div>
@@ -1036,12 +1036,12 @@
             <canvas id="stage" aria-label="Interactive text canvas"></canvas>
             <div class="stage-footer">
               <div class="stat-box">
-                <span class="stat-label">Text Area</span>
-                <span class="stat-value" id="layoutStatus">Centered Rectangle</span>
+                <span class="stat-label">文本区域</span>
+                <span class="stat-value" id="layoutStatus">居中矩形</span>
               </div>
               <div class="stat-box">
-                <span class="stat-label">Visibility</span>
-                <span class="stat-value" id="overflowStatus">All text visible</span>
+                <span class="stat-label">可见性</span>
+                <span class="stat-value" id="overflowStatus">全部可见</span>
               </div>
             </div>
           </div>
@@ -1050,56 +1050,56 @@
         <aside class="control-panel">
           <div class="panel-topline">
             <div>
-              <div class="panel-title">Control Panel</div>
-              <h3>Workspace</h3>
+              <div class="panel-title">控制面板</div>
+              <h3>工作台</h3>
             </div>
-            <span class="chip">Live</span>
+            <span class="chip">运行中</span>
           </div>
 
           <div class="panel-group">
             <div class="field-head">
-              <span class="field-label">Mode</span>
-              <span class="field-value" id="modeLabel">Mimosa</span>
+              <span class="field-label">模式</span>
+              <span class="field-value" id="modeLabel">含羞</span>
             </div>
             <div class="mode-row">
-              <button class="mode-btn is-active" data-mode="mimosa" type="button">Mimosa</button>
-              <button class="mode-btn" data-mode="snow" type="button">Snow</button>
-              <button class="mode-btn" data-mode="curtain" type="button">Curtain</button>
+              <button class="mode-btn is-active" data-mode="mimosa" type="button">含羞</button>
+              <button class="mode-btn" data-mode="snow" type="button">落雪</button>
+              <button class="mode-btn" data-mode="curtain" type="button">风帘</button>
             </div>
           </div>
 
           <div class="panel-group">
             <div class="field-head">
-              <span class="field-label">Text</span>
-              <span class="field-value">Paste / Upload</span>
+              <span class="field-label">文本</span>
+              <span class="field-value">粘贴 / 上传</span>
             </div>
             <textarea class="text-input" id="textInput" spellcheck="false"></textarea>
             <div class="action-row">
               <label class="upload-btn">
-                TXT
+                上传 TXT
                 <input type="file" id="fileInput" accept=".txt,text/plain" />
               </label>
-              <button class="ghost-btn" id="sampleButton" type="button">Reset</button>
+              <button class="ghost-btn" id="sampleButton" type="button">重置</button>
             </div>
-            <p class="helper text-helper">Paste or upload plain text. The stage shows exactly the text you provide.</p>
+            <p class="helper text-helper">粘贴或上传纯文本，画布只显示你输入的文字内容。</p>
           </div>
 
           <div class="panel-group">
             <div class="field-head">
-              <span class="field-label">Canvas</span>
+              <span class="field-label">画布</span>
               <span class="field-value" id="canvasLabel">76% / 68%</span>
             </div>
             <div class="meter-grid">
               <div class="range-wrap">
                 <div class="field-row">
-                  <span class="field-label">Width</span>
+                  <span class="field-label">宽度</span>
                   <span class="field-value" id="canvasWidthValue">76%</span>
                 </div>
                 <input class="range-input" id="canvasWidthInput" type="range" min="0.54" max="0.995" step="0.01" value="0.76" />
               </div>
               <div class="range-wrap">
                 <div class="field-row">
-                  <span class="field-label">Height</span>
+                  <span class="field-label">高度</span>
                   <span class="field-value" id="canvasHeightValue">68%</span>
                 </div>
                 <input class="range-input" id="canvasHeightInput" type="range" min="0.42" max="0.985" step="0.01" value="0.68" />
@@ -1109,41 +1109,41 @@
 
           <div class="panel-group">
             <div class="field-head">
-              <span class="field-label">Flow</span>
-              <span class="field-value" id="flowValue">Horizontal / LTR</span>
+              <span class="field-label">排布</span>
+              <span class="field-value" id="flowValue">横排 / 左到右</span>
             </div>
 
             <div class="range-wrap">
               <div class="field-row">
-                <span class="field-label">Arrange</span>
-                <span class="field-value" id="orientationValue">Horizontal</span>
+                <span class="field-label">排列</span>
+                <span class="field-value" id="orientationValue">横排</span>
               </div>
               <div class="mode-row">
-                <button class="mode-btn flow-btn is-active" data-layout="horizontal" type="button">Horizontal</button>
-                <button class="mode-btn flow-btn" data-layout="vertical" type="button">Vertical</button>
+                <button class="mode-btn flow-btn is-active" data-layout="horizontal" type="button">横排</button>
+                <button class="mode-btn flow-btn" data-layout="vertical" type="button">竖排</button>
               </div>
             </div>
 
             <div class="range-wrap">
               <div class="field-row">
-                <span class="field-label">Read</span>
-                <span class="field-value" id="directionValue">Left to Right</span>
+                <span class="field-label">阅读</span>
+                <span class="field-value" id="directionValue">左到右</span>
               </div>
               <div class="mode-row">
-                <button class="mode-btn direction-btn is-active" data-direction="ltr" type="button">Left to Right</button>
-                <button class="mode-btn direction-btn" data-direction="rtl" type="button">Right to Left</button>
+                <button class="mode-btn direction-btn is-active" data-direction="ltr" type="button">左到右</button>
+                <button class="mode-btn direction-btn" data-direction="rtl" type="button">右到左</button>
               </div>
             </div>
           </div>
 
           <div class="panel-group" id="curtainWindGroup" hidden>
             <div class="field-head">
-              <span class="field-label">Curtain Wind</span>
-              <span class="field-value" id="curtainWindValue">Small Wind</span>
+              <span class="field-label">风力</span>
+              <span class="field-value" id="curtainWindValue">轻风</span>
             </div>
             <div class="mode-row">
-              <button class="mode-btn wind-btn is-active" data-wind="soft" type="button">Small Wind</button>
-              <button class="mode-btn wind-btn" data-wind="strong" type="button">Strong Wind</button>
+              <button class="mode-btn wind-btn is-active" data-wind="soft" type="button">轻风</button>
+              <button class="mode-btn wind-btn" data-wind="strong" type="button">强风</button>
             </div>
           </div>
 
@@ -1151,13 +1151,13 @@
           <div class="panel-group">
             <div class="legacy-color-field">
               <div class="legacy-color-card">
-                <div class="field-label">Canvas Color</div>
+                <div class="field-label">画布颜色</div>
                 <label class="color-picker" aria-label="Canvas color">
                   <input type="color" id="legacyCanvasColor" value="#0c1014" />
                 </label>
               </div>
               <div class="legacy-color-card">
-                <div class="field-label">Text Color</div>
+                <div class="field-label">文字颜色</div>
                 <label class="color-picker" aria-label="Text color">
                   <input type="color" id="legacyTextColor" value="#ede6d8" />
                 </label>
@@ -1165,13 +1165,13 @@
             </div>
 
             <div class="field-head">
-              <span class="field-label">Type</span>
+              <span class="field-label">字型</span>
                 <span class="field-value" id="typeLabel">22 px / 1.00x</span>
             </div>
 
             <div class="range-wrap">
               <div class="field-row">
-                <span class="field-label">Size</span>
+                <span class="field-label">字号</span>
                   <span class="field-value" id="fontSizeValue">22 px</span>
                 </div>
                 <input class="range-input" id="fontSizeInput" type="range" min="10" max="72" step="1" value="22" />
@@ -1179,7 +1179,7 @@
 
             <div class="range-wrap">
               <div class="field-row">
-                <span class="field-label">Line / Density</span>
+                <span class="field-label">行距 / 密度</span>
                 <span class="field-value" id="densityValue">1.00 x</span>
               </div>
               <input class="range-input" id="densityInput" type="range" min="0.82" max="1.5" step="0.01" value="1.00" />
@@ -1209,6 +1209,15 @@
         "\u89e6\u6478\u65f6\u5b83\u8f7b\u5fae\u95ed\u5408\uff0c\u9047\u96e8\u65f6\u8f7b\u5fae\u6298\u5c04\uff0c",
         "\u5728 Curtain \u6a21\u5f0f\u4e0b\u5219\u50cf\u73e0\u5e18\u4e00\u6837\u6458\u6302\u3001\u6446\u52a8\u3001\u56de\u5f39\u3002"
       ].join("\n");
+      const MODE_DISPLAY = {
+        mimosa: "含羞",
+        snow: "落雪",
+        curtain: "风帘"
+      };
+      const DEVICE_DISPLAY = {
+        desktop: "电脑版",
+        mobile: "手机版"
+      };
 
       const THEMES = {
         slate: {
@@ -1454,7 +1463,7 @@
           appShell.classList.toggle("device-desktop", state.deviceMode === "desktop");
         }
         if (deviceModeChip) {
-          deviceModeChip.textContent = state.deviceMode === "mobile" ? "Mobile" : "Computer";
+          deviceModeChip.textContent = DEVICE_DISPLAY[state.deviceMode];
         }
         canvas.style.touchAction = state.deviceMode === "mobile" ? "manipulation" : "none";
       }
@@ -1499,10 +1508,10 @@
           landingNote.textContent = "Creative submissions and bug reports: 3342784909@qq.com";
         }
         if (brandCopy) {
-          brandCopy.textContent = "Centered text canvas with mimosa, snow, and curtain interactions.";
+          brandCopy.textContent = "中央文字画布与三种克制的互动模式。";
         }
         if (helperText) {
-          helperText.textContent = "Paste or upload plain text. The stage shows exactly the text you provide.";
+          helperText.textContent = "粘贴或上传纯文本，画布只显示你输入的文字内容。";
         }
       }
 
@@ -1553,9 +1562,9 @@
       }
 
       function updateLabels() {
-        const modeName = state.mode.charAt(0).toUpperCase() + state.mode.slice(1);
-        const orientationName = state.layoutOrientation === "vertical" ? "Vertical" : "Horizontal";
-        const directionName = state.readingDirection === "rtl" ? "Right to Left" : "Left to Right";
+        const modeName = MODE_DISPLAY[state.mode] || state.mode;
+        const orientationName = state.layoutOrientation === "vertical" ? "竖排" : "横排";
+        const directionName = state.readingDirection === "rtl" ? "右到左" : "左到右";
         fontSizeValue.textContent = `${state.fontSize}px`;
         densityValue.textContent = `${state.density.toFixed(2)}x`;
         typeLabel.textContent = `${state.fontSize}px / ${state.density.toFixed(2)}x`;
@@ -1565,7 +1574,7 @@
         modeStatus.textContent = modeName;
         modeLabel.textContent = modeName;
         if (flowValue) {
-          flowValue.textContent = `${orientationName} / ${state.readingDirection.toUpperCase()}`;
+          flowValue.textContent = `${orientationName} / ${directionName}`;
         }
         if (orientationValue) {
           orientationValue.textContent = orientationName;
@@ -1577,7 +1586,7 @@
           curtainWindGroup.hidden = state.mode !== "curtain";
         }
         if (curtainWindValue) {
-          curtainWindValue.textContent = state.curtainWind === "strong" ? "Strong Wind" : "Small Wind";
+          curtainWindValue.textContent = state.curtainWind === "strong" ? "强风" : "轻风";
         }
         updateFlowControls();
       }
@@ -2172,8 +2181,8 @@
 
         layoutStatus.textContent = `${Math.round(result.region.w)} × ${Math.round(result.region.h)}`;
         overflowStatus.textContent = result.hiddenGlyphCount > 0
-          ? `Clipped ${result.hiddenGlyphCount} chars`
-          : "All text visible";
+          ? `已裁切 ${result.hiddenGlyphCount} 字`
+          : "全部可见";
         layoutStatus.textContent = `${Math.round(result.region.w)} x ${Math.round(result.region.h)} px`;
       }
 
@@ -2453,15 +2462,6 @@
 
         ctx.restore();
 
-        ctx.save();
-        ctx.font = `11px ${HUD_FONT}`;
-        ctx.fillStyle = state.theme.textSoft;
-        ctx.textBaseline = "top";
-        ctx.textAlign = "left";
-        ctx.fillText(`TEXT AREA  ${state.theme.code}`, r.x + 18, r.y + 16);
-        ctx.textAlign = "right";
-        ctx.fillText(`${state.glyphs.length} glyphs`, r.x + r.w - 18, r.y + 16);
-        ctx.restore();
       }
 
       function drawCurtainThreads() {
