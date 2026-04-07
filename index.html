@@ -2714,28 +2714,101 @@
       function getPerchTemplate(region) {
         const inner = getInnerRegion(region);
         const canopy = [
-          { cx: inner.x + inner.w * 0.34, cy: inner.y + inner.h * 0.32, rx: inner.w * 0.17, ry: inner.h * 0.14 },
-          { cx: inner.x + inner.w * 0.50, cy: inner.y + inner.h * 0.21, rx: inner.w * 0.24, ry: inner.h * 0.18 },
-          { cx: inner.x + inner.w * 0.67, cy: inner.y + inner.h * 0.32, rx: inner.w * 0.17, ry: inner.h * 0.14 },
-          { cx: inner.x + inner.w * 0.50, cy: inner.y + inner.h * 0.36, rx: inner.w * 0.28, ry: inner.h * 0.18 }
+          { cx: inner.x + inner.w * 0.14, cy: inner.y + inner.h * 0.2, rx: inner.w * 0.14, ry: inner.h * 0.16 },
+          { cx: inner.x + inner.w * 0.37, cy: inner.y + inner.h * 0.2, rx: inner.w * 0.17, ry: inner.h * 0.18 },
+          { cx: inner.x + inner.w * 0.68, cy: inner.y + inner.h * 0.22, rx: inner.w * 0.19, ry: inner.h * 0.18 },
+          { cx: inner.x + inner.w * 0.3, cy: inner.y + inner.h * 0.58, rx: inner.w * 0.15, ry: inner.h * 0.2 },
+          { cx: inner.x + inner.w * 0.52, cy: inner.y + inner.h * 0.52, rx: inner.w * 0.13, ry: inner.h * 0.15 },
+          { cx: inner.x + inner.w * 0.78, cy: inner.y + inner.h * 0.62, rx: inner.w * 0.18, ry: inner.h * 0.24 }
         ];
         const trunk = {
-          x: inner.x + inner.w * 0.44,
-          y: inner.y + inner.h * 0.49,
-          w: inner.w * 0.13,
-          h: inner.h * 0.31
+          x: inner.x + inner.w * 0.39,
+          y: inner.y + inner.h * 0.17,
+          w: inner.w * 0.2,
+          h: inner.h * 0.68
         };
+        const trunkRects = [
+          { x: inner.x + inner.w * 0.08, y: inner.y + inner.h * 0.12, w: inner.w * 0.18, h: inner.h * 0.18 },
+          { x: inner.x + inner.w * 0.3, y: inner.y + inner.h * 0.08, w: inner.w * 0.26, h: inner.h * 0.18 },
+          { x: inner.x + inner.w * 0.58, y: inner.y + inner.h * 0.1, w: inner.w * 0.24, h: inner.h * 0.18 },
+          { x: inner.x + inner.w * 0.4, y: inner.y + inner.h * 0.28, w: inner.w * 0.16, h: inner.h * 0.28 },
+          { x: inner.x + inner.w * 0.42, y: inner.y + inner.h * 0.56, w: inner.w * 0.18, h: inner.h * 0.26 },
+          { x: inner.x + inner.w * 0.73, y: inner.y + inner.h * 0.26, w: inner.w * 0.13, h: inner.h * 0.42 }
+        ];
+        const branches = [
+          { ax: 0.47, ay: 0.16, bx: 0.46, by: 0.84, width: 0.13 },
+          { ax: 0.44, ay: 0.2, bx: 0.12, by: 0.12, width: 0.1 },
+          { ax: 0.49, ay: 0.18, bx: 0.79, by: 0.12, width: 0.1 },
+          { ax: 0.72, ay: 0.21, bx: 0.8, by: 0.78, width: 0.11 },
+          { ax: 0.47, ay: 0.48, bx: 0.57, by: 0.65, width: 0.08 },
+          { ax: 0.48, ay: 0.58, bx: 0.34, by: 0.72, width: 0.07 }
+        ];
+        const twigs = [
+          { ax: 0.19, ay: 0.1, bx: 0.1, by: 0.02 },
+          { ax: 0.21, ay: 0.16, bx: 0.15, by: 0.27 },
+          { ax: 0.35, ay: 0.07, bx: 0.29, by: 0.0 },
+          { ax: 0.58, ay: 0.1, bx: 0.66, by: 0.03 },
+          { ax: 0.73, ay: 0.12, bx: 0.84, by: 0.03 },
+          { ax: 0.77, ay: 0.58, bx: 0.87, by: 0.69 },
+          { ax: 0.49, ay: 0.65, bx: 0.61, by: 0.78 }
+        ].map((twig) => ({
+          x1: inner.x + inner.w * twig.ax,
+          y1: inner.y + inner.h * twig.ay,
+          x2: inner.x + inner.w * twig.bx,
+          y2: inner.y + inner.h * twig.by
+        }));
         return {
           inner,
           canopy,
           trunk,
-          trunkTextRect: {
-            x: trunk.x + trunk.w * 0.12,
-            y: trunk.y + trunk.h * 0.08,
-            w: trunk.w * 0.76,
-            h: trunk.h * 0.84
-          },
+          trunkRects,
+          branches: branches.map((branch) => ({
+            x1: inner.x + inner.w * branch.ax,
+            y1: inner.y + inner.h * branch.ay,
+            x2: inner.x + inner.w * branch.bx,
+            y2: inner.y + inner.h * branch.by,
+            width: inner.w * branch.width
+          })),
+          twigs,
           groundY: inner.y + inner.h * 0.9
+        };
+      }
+
+      function layoutPerchTrunkText(text, fontSize, template, spacing) {
+        const rects = template.trunkRects?.length
+          ? template.trunkRects
+          : [template.trunk];
+        const source = Array.from(String(text || ""));
+        const totalArea = rects.reduce((sum, rect) => sum + rect.w * rect.h, 0) || 1;
+        const glyphs = [];
+        let hiddenGlyphCount = 0;
+        let cursor = 0;
+
+        rects.forEach((rect, index) => {
+          const remaining = source.length - cursor;
+          if (remaining <= 0) {
+            return;
+          }
+
+          let takeCount = index === rects.length - 1
+            ? remaining
+            : Math.max(1, Math.round(source.length * ((rect.w * rect.h) / totalArea)));
+          takeCount = Math.min(takeCount, remaining);
+
+          const slice = source.slice(cursor, cursor + takeCount).join("");
+          const result = layoutTextBlock(slice, fontSize, rect, spacing, "ltr");
+          result.glyphs.forEach((glyph) => glyphs.push(glyph));
+          hiddenGlyphCount += result.hiddenGlyphCount;
+          cursor += takeCount;
+        });
+
+        if (cursor < source.length) {
+          hiddenGlyphCount += source.length - cursor;
+        }
+
+        return {
+          glyphs,
+          hiddenGlyphCount
         };
       }
 
@@ -2827,7 +2900,12 @@
         const glyphs = [];
         const perchClusters = [];
         const leafChars = Array.from(String(state.perchLeafText || "").replace(/\s+/g, ""));
-        const trunkLayout = layoutTextBlock(state.perchTrunkText || "", Math.max(12, fontSize * 0.88), template.trunkTextRect, spacing, "ltr");
+        const trunkLayout = layoutPerchTrunkText(
+          state.perchTrunkText || "",
+          Math.max(12, fontSize * 0.82),
+          template,
+          spacing
+        );
         let cursor = 0;
         let hiddenGlyphCount = trunkLayout.hiddenGlyphCount;
         let clusterIndex = 0;
@@ -2872,6 +2950,8 @@
             glyph.perchCluster = clusterIndex;
             glyph.localX = offset.x;
             glyph.localY = offset.y;
+            glyph.fill = "rgba(244, 248, 251, 0.96)";
+            glyph.sheenColor = "rgba(255, 255, 255, 0.9)";
             glyph.orderedX = glyph.baseX;
             glyph.orderedY = glyph.baseY;
             glyphs.push(glyph);
@@ -2888,6 +2968,8 @@
 
         trunkLayout.glyphs.forEach((glyph) => {
           glyph.perchPart = "trunk";
+          glyph.fill = "rgba(42, 52, 64, 0.86)";
+          glyph.sheenColor = "rgba(255, 255, 255, 0.55)";
           glyph.orderedX = glyph.baseX;
           glyph.orderedY = glyph.baseY;
           glyphs.push(glyph);
@@ -3664,20 +3746,39 @@
         if (state.mode !== "perch" || !state.perchTemplate) {
           return;
         }
-        const { canopy, trunk } = state.perchTemplate;
+        const { canopy, branches, twigs } = state.perchTemplate;
         ctx.save();
-        ctx.strokeStyle = state.theme.frame;
-        ctx.lineWidth = 1.15;
-        ctx.globalAlpha = 0.78;
+        ctx.globalAlpha = 0.95;
 
         canopy.forEach((lobe) => {
           ctx.beginPath();
           ctx.ellipse(lobe.cx, lobe.cy, lobe.rx, lobe.ry, 0, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(96, 149, 196, 0.72)";
+          ctx.fill();
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.22)";
+          ctx.lineWidth = 1;
           ctx.stroke();
         });
 
-        roundRectPath(ctx, trunk.x, trunk.y, trunk.w, trunk.h, 18);
-        ctx.stroke();
+        ctx.strokeStyle = "rgba(250, 247, 240, 0.96)";
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        branches.forEach((branch) => {
+          ctx.lineWidth = branch.width;
+          ctx.beginPath();
+          ctx.moveTo(branch.x1, branch.y1);
+          ctx.lineTo(branch.x2, branch.y2);
+          ctx.stroke();
+        });
+
+        ctx.lineWidth = Math.max(2.2, state.activeFontSize * 0.08);
+        twigs.forEach((twig) => {
+          ctx.beginPath();
+          ctx.moveTo(twig.x1, twig.y1);
+          ctx.lineTo(twig.x2, twig.y2);
+          ctx.stroke();
+        });
+
         ctx.restore();
       }
 
@@ -3828,12 +3929,12 @@
           ctx.rotate(glyph.rotation);
           ctx.scale(glyph.scale, glyph.scale);
           ctx.globalAlpha = clamp(glyph.alpha, 0.16, 1);
-          ctx.fillStyle = state.theme.text;
+          ctx.fillStyle = glyph.fill || state.theme.text;
           ctx.fillText(glyph.char, 0, 0);
 
           if (glyph.sheen > 0.05) {
             ctx.globalAlpha = glyph.sheen * 0.24;
-            ctx.fillStyle = state.theme.sheen;
+            ctx.fillStyle = glyph.sheenColor || state.theme.sheen;
             ctx.fillText(glyph.char, glyph.lensX, glyph.lensY);
           }
 
