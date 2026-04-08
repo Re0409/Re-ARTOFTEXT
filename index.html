@@ -514,7 +514,7 @@
     }
 
     .workspace-body {
-      min-height: 1120px;
+      min-height: 1280px;
       display: grid;
       grid-template-columns: minmax(0, 1fr) 372px;
       gap: 32px;
@@ -587,7 +587,7 @@
     .stage-shell {
       position: relative;
       height: calc(100% - 62px);
-      min-height: 920px;
+      min-height: 1040px;
       overflow: hidden;
       border-radius: 30px;
       background:
@@ -732,6 +732,60 @@
       backdrop-filter: blur(20px);
       position: relative;
       z-index: 1;
+    }
+
+    .chip-button {
+      appearance: none;
+      cursor: pointer;
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease, color 180ms ease;
+    }
+
+    .chip-button:hover,
+    .chip-button:focus-visible {
+      transform: translateY(-1px);
+      border-color: rgba(136, 152, 171, 0.22);
+      box-shadow: 0 14px 24px rgba(38, 48, 58, 0.1);
+      outline: none;
+    }
+
+    .chip-button.is-running {
+      background: linear-gradient(180deg, rgba(28, 33, 39, 0.96), rgba(42, 49, 57, 0.94));
+      color: #f8f5ef;
+      border-color: rgba(28, 33, 39, 0.18);
+      box-shadow: 0 16px 30px rgba(24, 30, 37, 0.18);
+    }
+
+    .start-panel-btn {
+      width: 100%;
+      min-height: 112px;
+      border: 1px solid rgba(20, 20, 20, 0.08);
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(28, 33, 39, 0.96), rgba(42, 49, 57, 0.94));
+      color: #f8f5ef;
+      font-family: "Arial Black", "Segoe UI", sans-serif;
+      font-size: clamp(28px, 3vw, 38px);
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      box-shadow: 0 18px 32px rgba(24, 30, 37, 0.18);
+      transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+    }
+
+    .start-panel-btn:hover,
+    .start-panel-btn:focus-visible {
+      transform: translateY(-1px);
+      box-shadow: 0 20px 36px rgba(24, 30, 37, 0.22);
+      filter: brightness(1.03);
+      outline: none;
+    }
+
+    .start-panel-btn.is-running {
+      background: linear-gradient(180deg, rgba(112, 129, 147, 0.96), rgba(88, 102, 118, 0.94));
+    }
+
+    .perf-helper {
+      margin: 0;
+      font-size: 11px;
+      line-height: 1.5;
     }
 
     .panel-group {
@@ -1013,7 +1067,7 @@
       }
 
       .stage-shell {
-        min-height: 520px;
+        min-height: 620px;
       }
     }
 
@@ -1055,7 +1109,7 @@
       }
 
       .stage-shell {
-        min-height: 62vh;
+        min-height: 68vh;
         height: auto;
       }
 
@@ -1126,8 +1180,8 @@
     }
 
     .app.device-mobile .stage-shell {
-      min-height: 70vh;
-      height: 70vh;
+      min-height: 74vh;
+      height: 74vh;
     }
 
     .app.device-mobile .control-panel {
@@ -1335,14 +1389,14 @@
                   <span class="field-label">宽度</span>
                   <span class="field-value" id="canvasWidthValue">76%</span>
                 </div>
-                <input class="range-input" id="canvasWidthInput" type="range" min="0.54" max="0.995" step="0.01" value="0.76" />
+                <input class="range-input" id="canvasWidthInput" type="range" min="0.64" max="1.00" step="0.01" value="0.84" />
               </div>
               <div class="range-wrap">
                 <div class="field-row">
                   <span class="field-label">高度</span>
                   <span class="field-value" id="canvasHeightValue">68%</span>
                 </div>
-                <input class="range-input" id="canvasHeightInput" type="range" min="0.42" max="0.985" step="0.01" value="0.68" />
+                <input class="range-input" id="canvasHeightInput" type="range" min="0.52" max="0.995" step="0.01" value="0.78" />
               </div>
             </div>
           </div>
@@ -1607,6 +1661,43 @@
         }
       };
       const DEFAULT_THEME = THEMES.slate;
+      const PERFORMANCE_STORAGE_KEY = "art-of-text-performance-tier";
+      const PERFORMANCE_DISPLAY = {
+        high: "High",
+        balanced: "Balanced",
+        lite: "Lite"
+      };
+      const INITIAL_NOW = performance.now();
+
+      const panelToplineMount = document.querySelector(".control-panel .panel-topline");
+      const textGroupMount = document.getElementById("textInput")?.closest(".panel-group");
+      if (panelToplineMount) {
+        const chipMount = panelToplineMount.querySelector(".chip");
+        if (chipMount) {
+          chipMount.id = "modeRunChip";
+          chipMount.classList.add("chip-button");
+        }
+      }
+      if (textGroupMount && !document.getElementById("performanceGroup")) {
+        textGroupMount.insertAdjacentHTML(
+          "afterend",
+          `
+          <div class="panel-group" id="performanceGroup">
+            <div class="field-head">
+              <span class="field-label">生成控制</span>
+              <span class="field-value" id="performanceLabel">Balanced</span>
+            </div>
+            <button class="start-panel-btn" id="modeStartButton" type="button">START</button>
+            <p class="helper perf-helper">必须先点击 Start，当前模式才会开始运行。</p>
+            <div class="mode-row">
+              <button class="mode-btn perf-btn" data-performance="high" type="button">High</button>
+              <button class="mode-btn perf-btn is-active" data-performance="balanced" type="button">Balanced</button>
+              <button class="mode-btn perf-btn" data-performance="lite" type="button">Lite</button>
+            </div>
+          </div>
+          `
+        );
+      }
 
       const modeGroupMount = document.getElementById("modeLabel")?.closest(".panel-group");
       if (modeGroupMount && !modeGroupMount.querySelector('[data-mode="web"]')) {
@@ -1695,6 +1786,8 @@
       const mobileEntryButton = document.getElementById("mobileEntryButton");
       const backButton = document.getElementById("backButton");
       const deviceModeChip = document.getElementById("deviceModeChip");
+      const modeRunChip = document.getElementById("modeRunChip");
+      const modeStartButton = document.getElementById("modeStartButton");
       const canvas = document.getElementById("stage");
       const ctx = canvas.getContext("2d");
       const textInput = document.getElementById("textInput");
@@ -1723,9 +1816,11 @@
       const curtainWindValue = document.getElementById("curtainWindValue");
       const modeStatus = document.getElementById("modeStatus");
       const modeLabel = document.getElementById("modeLabel");
+      const performanceLabel = document.getElementById("performanceLabel");
       const layoutStatus = document.getElementById("layoutStatus");
       const overflowStatus = document.getElementById("overflowStatus");
       const modeButtons = Array.from(document.querySelectorAll(".mode-btn[data-mode]"));
+      const performanceButtons = Array.from(document.querySelectorAll(".perf-btn"));
       const layoutButtons = Array.from(document.querySelectorAll(".flow-btn"));
       const directionButtons = Array.from(document.querySelectorAll(".direction-btn"));
       const windButtons = Array.from(document.querySelectorAll(".wind-btn"));
@@ -1768,6 +1863,15 @@
       /* =========================
          Runtime state
          ========================= */
+      const savedPerformanceTier = (() => {
+        try {
+          const stored = localStorage.getItem(PERFORMANCE_STORAGE_KEY);
+          return stored && PERFORMANCE_DISPLAY[stored] ? stored : "balanced";
+        } catch (error) {
+          return "balanced";
+        }
+      })();
+
       const state = {
         view: "landing",
         deviceMode: "desktop",
@@ -1784,10 +1888,13 @@
         density: Number(densityInput.value) || 1,
         rowGapScale: Number(rowGapInput?.value) || 1,
         columnGapScale: Number(columnGapInput?.value) || 1,
-        canvasWidthScale: Number(canvasWidthInput.value) || 0.76,
-        canvasHeightScale: Number(canvasHeightInput.value) || 0.68,
+        canvasWidthScale: Number(canvasWidthInput.value) || 0.84,
+        canvasHeightScale: Number(canvasHeightInput.value) || 0.78,
         snowSize: Number(snowSizeInput?.value) || 1.15,
         snowDensity: Number(snowDensityInput?.value) || 0.72,
+        performanceTier: savedPerformanceTier,
+        isModeRunning: false,
+        pageVisible: !document.hidden,
         webMode: "random",
         webSize: Number(webSizeInput?.value) || 1,
         webs: [],
@@ -1825,13 +1932,19 @@
         gusts: [],
         pointers: new Map(),
         needsLayout: true,
+        needsRender: true,
         resizeQueued: false,
-        lastFrame: performance.now(),
+        frameRequested: false,
+        frameHandle: 0,
+        lastFrame: INITIAL_NOW,
+        lastRenderAt: 0,
+        lastInteractionTime: INITIAL_NOW,
         time: 0,
         snowSpawn: 0,
         windSpawn: 0,
         perchWindSpawn: 0,
         hoverPointer: null,
+        glyphMotionActive: false,
         measureCache: new Map()
       };
 
@@ -1892,6 +2005,225 @@
         if (legacyTextColor) {
           legacyTextColor.value = normalizeHex(state.surfaceText, DEFAULT_THEME.text);
         }
+      }
+
+      function getPerformanceProfile() {
+        switch (state.performanceTier) {
+          case "high":
+            return {
+              activeFps: 60,
+              idleFps: 22,
+              snowCap: 54,
+              webCap: 8,
+              tideCap: 8,
+              gustCap: 7,
+              textShadowBlur: 10,
+              panelShadowBlur: 28,
+              webShadowBlur: 10,
+              snowGlowMultiplier: 1,
+              curtainMotion: 1,
+              perchMotion: 1,
+              tideMotion: 1
+            };
+          case "lite":
+            return {
+              activeFps: 24,
+              idleFps: 8,
+              snowCap: 18,
+              webCap: 4,
+              tideCap: 3,
+              gustCap: 3,
+              textShadowBlur: 0,
+              panelShadowBlur: 12,
+              webShadowBlur: 0,
+              snowGlowMultiplier: 0.35,
+              curtainMotion: 0.72,
+              perchMotion: 0.74,
+              tideMotion: 0.8
+            };
+          default:
+            return {
+              activeFps: 38,
+              idleFps: 14,
+              snowCap: 30,
+              webCap: 6,
+              tideCap: 5,
+              gustCap: 5,
+              textShadowBlur: 5,
+              panelShadowBlur: 18,
+              webShadowBlur: 4,
+              snowGlowMultiplier: 0.7,
+              curtainMotion: 0.88,
+              perchMotion: 0.86,
+              tideMotion: 0.9
+            };
+        }
+      }
+
+      function requestFrame() {
+        if (state.frameRequested) {
+          return;
+        }
+        state.frameRequested = true;
+        state.frameHandle = requestAnimationFrame(frame);
+      }
+
+      function markDirty() {
+        state.needsRender = true;
+        requestFrame();
+      }
+
+      function markLayoutDirty() {
+        state.needsLayout = true;
+        markDirty();
+      }
+
+      function markInteraction() {
+        state.lastInteractionTime = performance.now();
+        markDirty();
+      }
+
+      function trimDynamicObjectsToProfile() {
+        const profile = getPerformanceProfile();
+        if (state.snowflakes.length > profile.snowCap) {
+          state.snowflakes = state.snowflakes.slice(-profile.snowCap);
+        }
+        if (state.webs.length > profile.webCap) {
+          state.webs = state.webs.slice(-profile.webCap);
+        }
+        if (state.tideDrops.length > profile.tideCap) {
+          state.tideDrops = state.tideDrops.slice(-profile.tideCap);
+        }
+        if (state.gusts.length > profile.gustCap) {
+          state.gusts = state.gusts.slice(-profile.gustCap);
+        }
+      }
+
+      function syncGlyphRestState() {
+        state.glyphs.forEach((glyph) => {
+          glyph.restX = glyph.baseX;
+          glyph.restY = glyph.baseY;
+          glyph.restScale = Number.isFinite(glyph.scale) ? glyph.scale : 1;
+          glyph.restRotation = Number.isFinite(glyph.rotation) ? glyph.rotation : 0;
+          glyph.restAlpha = Number.isFinite(glyph.alpha) ? glyph.alpha : 1;
+          glyph.vx = 0;
+          glyph.vy = 0;
+          glyph.scaleV = 0;
+          glyph.rotationV = 0;
+          glyph.alphaV = 0;
+          glyph.lensX = 0;
+          glyph.lensY = 0;
+          glyph.sheen = 0;
+        });
+      }
+
+      function resetGlyphVisualState() {
+        state.glyphMotionActive = false;
+        state.glyphs.forEach((glyph) => {
+          if (!glyph || glyph.redDropped) {
+            return;
+          }
+          glyph.x = glyph.restX ?? glyph.baseX;
+          glyph.y = glyph.restY ?? glyph.baseY;
+          glyph.scale = glyph.restScale ?? 1;
+          glyph.rotation = glyph.restRotation ?? 0;
+          glyph.alpha = glyph.restAlpha ?? 1;
+          glyph.vx = 0;
+          glyph.vy = 0;
+          glyph.scaleV = 0;
+          glyph.rotationV = 0;
+          glyph.alphaV = 0;
+          glyph.lensX = 0;
+          glyph.lensY = 0;
+          glyph.sheen = 0;
+        });
+      }
+
+      function clearTransientState(resetGlyphs = true) {
+        state.pointers.clear();
+        state.hoverPointer = null;
+        state.snowflakes.length = 0;
+        state.snowSpawn = 0;
+        state.gusts.length = 0;
+        state.windSpawn = 0;
+        state.returnRipples = [];
+        state.webs = [];
+        state.tideDrops = [];
+        state.growthReplayActive = false;
+        state.growthDrawing = false;
+        state.perchWindSpawn = 0.35;
+        state.redLinks.forEach((link) => {
+          if (!link) {
+            return;
+          }
+          link.breaking = false;
+          link.breakTimer = 0;
+          link.tug = 0;
+        });
+        if (resetGlyphs) {
+          resetGlyphVisualState();
+        }
+      }
+
+      function stopModeAnimation(resetGlyphs = true) {
+        state.isModeRunning = false;
+        clearTransientState(resetGlyphs);
+        updateLabels();
+        markDirty();
+      }
+
+      function startModeAnimation() {
+        if (state.view !== "workspace") {
+          return;
+        }
+        state.isModeRunning = true;
+        state.lastFrame = performance.now();
+        state.lastInteractionTime = state.lastFrame;
+        if (state.mode === "curtain") {
+          scheduleCurtainGust(true);
+        }
+        updateLabels();
+        markDirty();
+      }
+
+      function modeHasContinuousAnimation() {
+        return state.mode === "snow" || state.mode === "curtain" || state.mode === "perch" || state.mode === "tide";
+      }
+
+      function hasTransientMotion() {
+        return (
+          state.glyphMotionActive ||
+          state.snowflakes.length > 0 ||
+          state.gusts.length > 0 ||
+          state.returnRipples.length > 0 ||
+          state.webs.length > 0 ||
+          state.tideDrops.length > 0 ||
+          state.growthReplayActive ||
+          state.growthDrawing ||
+          state.redLinks.some((link) => (link.breaking && !link.broken) || (link.broken && link.fade > 0.02))
+        );
+      }
+
+      function shouldContinueFrame(now) {
+        if (!state.pageVisible) {
+          return false;
+        }
+        if (state.needsLayout || state.needsRender || state.resizeQueued) {
+          return true;
+        }
+        if (state.view !== "workspace" || !state.isModeRunning) {
+          return false;
+        }
+        if (state.pointers.size > 0) {
+          return true;
+        }
+        if (state.mode === "mimosa" && state.hoverPointer) {
+          return true;
+        }
+        if (modeHasContinuousAnimation()) {
+          return true;
+        }
+        return hasTransientMotion() || now - state.lastInteractionTime < 280;
       }
 
       function spawnReturnRipple(point) {
@@ -2080,6 +2412,10 @@
         if (state.mode !== "web" || !state.textRegion || !state.glyphs.length) {
           return;
         }
+        const profile = getPerformanceProfile();
+        if (state.webs.length >= profile.webCap) {
+          return;
+        }
         const baseScale = state.webMode === "set"
           ? state.webSize
           : 0.54 + Math.random() * 0.28;
@@ -2089,12 +2425,13 @@
           x: point.x,
           y: point.y,
           radius,
-          currentRadius: radius,
+          currentRadius: radius * 1.08,
           targetRadius: radius * (0.22 + Math.random() * 0.12),
           spin: (Math.random() - 0.5) * 0.08,
           captures: [],
           age: 0,
-          decay: 1
+          decay: 1,
+          appear: 0
         };
 
         state.glyphs.forEach((glyph, index) => {
@@ -2115,8 +2452,8 @@
         });
 
         if (web.captures.length) {
-          if (state.webs.length > 9) {
-            state.webs.splice(0, state.webs.length - 9);
+          if (state.webs.length > profile.webCap) {
+            state.webs.splice(0, state.webs.length - profile.webCap);
           }
           state.webs.push(web);
         }
@@ -2124,6 +2461,10 @@
 
       function spawnTideDrop(point) {
         if (state.mode !== "tide" || !state.textRegion) {
+          return;
+        }
+        const profile = getPerformanceProfile();
+        if (state.tideDrops.length >= profile.tideCap) {
           return;
         }
         state.tideDrops.push({
@@ -2230,13 +2571,13 @@
       function applyDevicePreset(mode) {
         if (mode === "mobile") {
           state.fontSize = 18;
-          state.canvasWidthScale = 0.96;
-          state.canvasHeightScale = 0.92;
+          state.canvasWidthScale = 0.98;
+          state.canvasHeightScale = 0.95;
           state.density = 0.96;
         } else {
           state.fontSize = 22;
-          state.canvasWidthScale = 0.76;
-          state.canvasHeightScale = 0.68;
+          state.canvasWidthScale = 0.84;
+          state.canvasHeightScale = 0.78;
           state.density = 1;
         }
 
@@ -2251,7 +2592,7 @@
           columnGapInput.value = state.columnGapScale.toFixed(2);
         }
         updateLabels();
-        state.needsLayout = true;
+        markLayoutDirty();
       }
 
       function roundRectPath(context, x, y, w, h, radius) {
@@ -2327,6 +2668,8 @@
       function activateWorkspace(skipTransition, mode) {
         applyDeviceMode(mode || state.deviceMode);
         state.view = "workspace";
+        state.isModeRunning = false;
+        clearTransientState(true);
         workspace.classList.add("is-live");
         landingPage.classList.add("is-hidden");
         if (skipTransition) {
@@ -2337,21 +2680,23 @@
             landingPage.style.transition = "";
           });
         }
-        state.needsLayout = true;
+        markLayoutDirty();
         location.hash = state.deviceMode === "mobile" ? "workspace-mobile" : "workspace";
         queueResize();
       }
 
       function activateLanding() {
         state.view = "landing";
-        state.pointers.clear();
-        state.hoverPointer = null;
+        stopModeAnimation(true);
         workspace.classList.remove("is-live");
         landingPage.classList.remove("is-hidden");
         location.hash = "";
       }
 
       function updateFlowControls() {
+        performanceButtons.forEach((button) => {
+          button.classList.toggle("is-active", button.dataset.performance === state.performanceTier);
+        });
         layoutButtons.forEach((button) => {
           button.classList.toggle("is-active", button.dataset.layout === state.layoutOrientation);
         });
@@ -2453,6 +2798,18 @@
         if (tideControlValue) {
           tideControlValue.textContent = `${tideDirectionName} / ${state.tideIntensity.toFixed(2)}x`;
         }
+        if (performanceLabel) {
+          performanceLabel.textContent = PERFORMANCE_DISPLAY[state.performanceTier] || "Balanced";
+        }
+        if (modeRunChip) {
+          modeRunChip.textContent = state.isModeRunning ? "运行中" : "待启动";
+          modeRunChip.classList.toggle("is-running", state.isModeRunning);
+        }
+        if (modeStartButton) {
+          modeStartButton.textContent = state.isModeRunning ? "RUNNING" : "START";
+          modeStartButton.classList.toggle("is-running", state.isModeRunning);
+          modeStartButton.setAttribute("aria-pressed", state.isModeRunning ? "true" : "false");
+        }
         if (growthControlGroup) {
           growthControlGroup.hidden = state.mode !== "growth";
         }
@@ -2519,6 +2876,10 @@
       }
 
       function spawnCurtainGust() {
+        const profile = getPerformanceProfile();
+        if (state.gusts.length >= profile.gustCap) {
+          return;
+        }
         const strong = state.curtainWind === "strong";
         state.gusts.push({
           amplitude: strong ? 0.72 + Math.random() * 1.18 : 0.34 + Math.random() * 0.72,
@@ -2537,7 +2898,7 @@
         canvas.width = Math.max(1, Math.round(rect.width * state.dpr));
         canvas.height = Math.max(1, Math.round(rect.height * state.dpr));
         ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
-        state.needsLayout = true;
+        markLayoutDirty();
       }
 
       function queueResize() {
@@ -2552,8 +2913,8 @@
       }
 
       function getTextRegion() {
-        const padX = clamp(state.width * 0.02, 8, 28);
-        const padY = clamp(state.height * 0.028, 10, 26);
+        const padX = clamp(state.width * 0.012, 6, 18);
+        const padY = clamp(state.height * 0.018, 8, 20);
         const maxWidth = Math.max(220, state.width - padX * 2);
         const maxHeight = Math.max(180, state.height - padY * 2);
         const width = clamp(maxWidth * state.canvasWidthScale, 220, maxWidth);
@@ -2569,8 +2930,8 @@
       }
 
       function getInnerRegion(region) {
-        const padX = clamp(region.w * 0.03, 8, 16);
-        const padY = clamp(region.h * 0.038, 8, 16);
+        const padX = clamp(region.w * 0.022, 6, 12);
+        const padY = clamp(region.h * 0.026, 6, 12);
         return {
           x: region.x + padX,
           y: region.y + padY,
@@ -3196,43 +3557,35 @@
 
       function getPerchTemplate(region) {
         const inner = getInnerRegion(region);
+        const trunk = {
+          x: inner.x + inner.w * 0.22,
+          y: inner.y + inner.h * 0.34,
+          w: inner.w * 0.16,
+          h: inner.h * 0.48,
+          radius: Math.max(18, inner.w * 0.03)
+        };
+        const trunkRects = [
+          trunk,
+          { x: inner.x + inner.w * 0.32, y: inner.y + inner.h * 0.28, w: inner.w * 0.17, h: inner.h * 0.1 },
+          { x: inner.x + inner.w * 0.46, y: inner.y + inner.h * 0.2, w: inner.w * 0.16, h: inner.h * 0.1 },
+          { x: inner.x + inner.w * 0.56, y: inner.y + inner.h * 0.18, w: inner.w * 0.15, h: inner.h * 0.09 }
+        ];
         const branchPaths = [
           {
-            width: inner.h * 0.16,
-            points: [
-              [0.03, 0.86], [0.1, 0.76], [0.18, 0.68], [0.29, 0.58], [0.43, 0.46],
-              [0.59, 0.35], [0.74, 0.28], [0.92, 0.25]
-            ]
+            width: Math.max(4.5, inner.h * 0.02),
+            points: [[0.3, 0.4], [0.42, 0.33], [0.55, 0.26], [0.68, 0.22]]
           },
           {
-            width: inner.h * 0.1,
-            points: [
-              [0.19, 0.58], [0.27, 0.47], [0.38, 0.36], [0.54, 0.26], [0.72, 0.18]
-            ]
+            width: Math.max(3.8, inner.h * 0.016),
+            points: [[0.28, 0.48], [0.37, 0.42], [0.46, 0.39]]
           },
           {
-            width: inner.h * 0.082,
-            points: [
-              [0.5, 0.43], [0.62, 0.54], [0.73, 0.64], [0.88, 0.73]
-            ]
+            width: Math.max(3.4, inner.h * 0.014),
+            points: [[0.42, 0.31], [0.52, 0.25], [0.63, 0.21], [0.76, 0.19]]
           },
           {
-            width: inner.h * 0.068,
-            points: [
-              [0.35, 0.52], [0.42, 0.62], [0.51, 0.75]
-            ]
-          },
-          {
-            width: inner.h * 0.056,
-            points: [
-              [0.15, 0.64], [0.08, 0.52], [0.03, 0.43]
-            ]
-          },
-          {
-            width: inner.h * 0.04,
-            points: [
-              [0.67, 0.31], [0.81, 0.21], [0.95, 0.16]
-            ]
+            width: Math.max(3, inner.h * 0.012),
+            points: [[0.5, 0.25], [0.59, 0.18], [0.7, 0.16]]
           }
         ].map((path) => ({
           width: path.width,
@@ -3241,14 +3594,13 @@
             y: inner.y + inner.h * y
           }))
         }));
-
         const leafZones = [
-          { x: 0.14, y: 0.25, w: 0.23, h: 0.18, tilt: -0.12 },
-          { x: 0.38, y: 0.22, w: 0.28, h: 0.18, tilt: 0.08 },
-          { x: 0.72, y: 0.22, w: 0.25, h: 0.17, tilt: -0.08 },
-          { x: 0.28, y: 0.56, w: 0.31, h: 0.21, tilt: 0.06 },
-          { x: 0.76, y: 0.56, w: 0.28, h: 0.22, tilt: -0.08 },
-          { x: 0.54, y: 0.78, w: 0.22, h: 0.17, tilt: 0.1 }
+          { x: 0.08, y: 0.16, w: 0.24, h: 0.18, tilt: -0.1 },
+          { x: 0.26, y: 0.12, w: 0.26, h: 0.19, tilt: 0.06 },
+          { x: 0.48, y: 0.1, w: 0.24, h: 0.18, tilt: -0.02 },
+          { x: 0.68, y: 0.11, w: 0.22, h: 0.17, tilt: 0.08 },
+          { x: 0.22, y: 0.38, w: 0.26, h: 0.18, tilt: -0.04 },
+          { x: 0.58, y: 0.34, w: 0.24, h: 0.17, tilt: 0.06 }
         ].map((zone) => ({
           x: inner.x + inner.w * zone.x,
           y: inner.y + inner.h * zone.y,
@@ -3256,30 +3608,10 @@
           h: inner.h * zone.h,
           tilt: zone.tilt
         }));
-
-        const trunk = {
-          x: inner.x + inner.w * 0.08,
-          y: inner.y + inner.h * 0.14,
-          w: inner.w * 0.82,
-          h: inner.h * 0.68
-        };
-        const trunkRects = [
-          { x: inner.x + inner.w * 0.05, y: inner.y + inner.h * 0.71, w: inner.w * 0.18, h: inner.h * 0.12 },
-          { x: inner.x + inner.w * 0.19, y: inner.y + inner.h * 0.6, w: inner.w * 0.18, h: inner.h * 0.1 },
-          { x: inner.x + inner.w * 0.34, y: inner.y + inner.h * 0.48, w: inner.w * 0.19, h: inner.h * 0.1 },
-          { x: inner.x + inner.w * 0.5, y: inner.y + inner.h * 0.36, w: inner.w * 0.18, h: inner.h * 0.09 },
-          { x: inner.x + inner.w * 0.67, y: inner.y + inner.h * 0.28, w: inner.w * 0.18, h: inner.h * 0.08 },
-          { x: inner.x + inner.w * 0.63, y: inner.y + inner.h * 0.55, w: inner.w * 0.13, h: inner.h * 0.16 },
-          { x: inner.x + inner.w * 0.4, y: inner.y + inner.h * 0.63, w: inner.w * 0.14, h: inner.h * 0.11 }
-        ];
         const twigs = [
-          [0.18, 0.47, 0.11, 0.39],
-          [0.34, 0.37, 0.27, 0.28],
-          [0.56, 0.26, 0.64, 0.17],
-          [0.74, 0.22, 0.83, 0.14],
-          [0.66, 0.58, 0.75, 0.67],
-          [0.46, 0.67, 0.56, 0.78],
-          [0.1, 0.55, 0.03, 0.47]
+          [0.62, 0.22, 0.75, 0.14],
+          [0.39, 0.33, 0.31, 0.24],
+          [0.5, 0.26, 0.56, 0.14]
         ].map(([x1, y1, x2, y2]) => ({
           x1: inner.x + inner.w * x1,
           y1: inner.y + inner.h * y1,
@@ -3337,38 +3669,26 @@
 
       function layoutPerchLeafText(text, fontSize, template, spacing) {
         const zones = template.leafZones || [];
-        const source = String(text || "").replace(/\r/g, "");
-        const totalArea = zones.reduce((sum, zone) => sum + zone.w * zone.h, 0) || 1;
+        const source = Array.from(String(text || "").replace(/\r/g, ""));
         const glyphs = [];
         const perchClusters = [];
         let hiddenGlyphCount = 0;
         let cursor = 0;
 
-        zones.forEach((zone, index) => {
-          const remaining = source.length - cursor;
-          if (remaining <= 0) {
+        zones.forEach((zone, zoneIndex) => {
+          if (cursor >= source.length) {
             return;
           }
 
-          let takeCount = index === zones.length - 1
-            ? remaining
-            : Math.max(1, Math.round(source.length * ((zone.w * zone.h) / totalArea)));
-          takeCount = Math.min(takeCount, remaining);
-
-          const blockText = source.slice(cursor, cursor + takeCount);
-          const inner = {
-            x: zone.x + zone.w * 0.12,
-            y: zone.y + zone.h * 0.14,
-            w: zone.w * 0.76,
-            h: zone.h * 0.72
-          };
-          const result = layoutTextBlock(blockText, fontSize, inner, spacing, "ltr");
+          const centerX = zone.x + zone.w * 0.5;
+          const centerY = zone.y + zone.h * 0.5;
+          const clusterIndex = perchClusters.length;
           const cluster = {
-            index,
-            baseX: zone.x + zone.w * 0.5,
-            baseY: zone.y + zone.h * 0.5,
-            x: zone.x + zone.w * 0.5,
-            y: zone.y + zone.h * 0.5,
+            index: clusterIndex,
+            baseX: centerX,
+            baseY: centerY,
+            x: centerX,
+            y: centerY,
             vx: 0,
             vy: 0,
             restAngle: zone.tilt || 0,
@@ -3379,24 +3699,54 @@
             fade: 1,
             landed: false
           };
+          const stepX = Math.max(fontSize * 0.94 * clamp(state.columnGapScale || 1, 0.72, 1.8), fontSize * 0.72);
+          const stepY = Math.max(fontSize * 1.12 * clamp(state.rowGapScale || 1, 0.72, 1.8), fontSize * 0.92);
+          const cols = Math.max(2, Math.floor(zone.w / stepX));
+          const rows = Math.max(2, Math.floor(zone.h / stepY));
+          const startX = centerX - ((cols - 1) * stepX) * 0.5;
+          const startY = centerY - ((rows - 1) * stepY) * 0.5;
+          const positions = [];
 
-          result.glyphs.forEach((glyph) => {
+          for (let row = 0; row < rows; row += 1) {
+            for (let col = 0; col < cols; col += 1) {
+              const px = startX + col * stepX;
+              const py = startY + row * stepY;
+              const nx = (px - centerX) / Math.max(zone.w * 0.48, 1);
+              const ny = (py - centerY) / Math.max(zone.h * 0.48, 1);
+              if (nx * nx + ny * ny > 1) {
+                continue;
+              }
+              positions.push({ x: px, y: py });
+            }
+          }
+
+          positions.sort((a, b) => {
+            if (Math.abs(a.y - b.y) > fontSize * 0.4) {
+              return a.y - b.y;
+            }
+            return a.x - b.x;
+          });
+
+          const takeCount = Math.min(positions.length, source.length - cursor);
+          for (let index = 0; index < takeCount; index += 1) {
+            const position = positions[index];
+            const char = source[cursor];
+            const glyph = makeGlyph(char, position.x, position.y, fontSize * 0.82, centerX);
             glyph.seed = Math.random() * Math.PI * 2;
-            glyph.advance = charWidth(glyph.char, fontSize);
+            glyph.advance = charWidth(char, fontSize * 0.82);
             glyph.perchPart = "leaf";
-            glyph.perchCluster = index;
-            glyph.localX = glyph.baseX - cluster.baseX;
-            glyph.localY = glyph.baseY - cluster.baseY;
-            glyph.fill = "rgba(243, 246, 250, 0.96)";
-            glyph.sheenColor = "rgba(255, 255, 255, 0.88)";
+            glyph.perchCluster = clusterIndex;
+            glyph.localX = position.x - centerX;
+            glyph.localY = position.y - centerY;
+            glyph.fill = "rgba(244, 247, 251, 0.96)";
+            glyph.sheenColor = "rgba(255, 255, 255, 0.9)";
             glyph.orderedX = glyph.baseX;
             glyph.orderedY = glyph.baseY;
             glyphs.push(glyph);
-          });
+            cursor += 1;
+          }
 
           perchClusters.push(cluster);
-          hiddenGlyphCount += result.hiddenGlyphCount;
-          cursor += takeCount;
         });
 
         if (cursor < source.length) {
@@ -3563,7 +3913,12 @@
               a: sorted[index],
               b: sorted[index + 1],
               broken: false,
-              fade: 1
+              fade: 1,
+              breaking: false,
+              breakTimer: 0,
+              pullX: 0,
+              pullY: 0,
+              tug: 0
             });
           }
         });
@@ -3671,7 +4026,11 @@
           state.growthSequence = buildGrowthSequence(state.sourceText);
           resetGrowthState(false);
         }
+        syncGlyphRestState();
+        trimDynamicObjectsToProfile();
+        state.glyphMotionActive = false;
         state.needsLayout = false;
+        state.needsRender = true;
 
         layoutStatus.textContent = `${Math.round(result.region.w)} × ${Math.round(result.region.h)}`;
         overflowStatus.textContent = result.hiddenGlyphCount > 0
@@ -3686,6 +4045,10 @@
          ========================= */
       function spawnSnowflake() {
         if (!state.textRegion) {
+          return;
+        }
+        const profile = getPerformanceProfile();
+        if (state.snowflakes.length >= profile.snowCap) {
           return;
         }
 
@@ -3712,11 +4075,16 @@
           return;
         }
 
+        const profile = getPerformanceProfile();
         state.snowSpawn -= dt;
-        const densityFactor = clamp(state.snowDensity, 0.35, 1.5);
+        const densityFactor = clamp(state.snowDensity, 0.35, 1.5) * (profile.snowCap / 30);
         while (state.snowSpawn <= 0) {
           spawnSnowflake();
           state.snowSpawn += (0.58 + Math.random() * 0.34) / densityFactor;
+          if (state.snowflakes.length >= profile.snowCap) {
+            state.snowSpawn = Math.max(state.snowSpawn, 0.18);
+            break;
+          }
         }
 
         const region = state.textRegion;
@@ -3759,6 +4127,8 @@
         const windVector = getCurtainWindVector();
         const isHorizontalWind = Math.abs(windVector.x) >= Math.abs(windVector.y);
         const columnMaxIndex = Math.max(1, state.curtainColumns.length - 1);
+        const profile = getPerformanceProfile();
+        const motionScale = profile.curtainMotion;
         const windProfile = state.curtainWind === "strong"
           ? {
               baseLean: 0.94,
@@ -3784,7 +4154,7 @@
         state.curtainColumns.forEach((column) => {
           const axis = columnMaxIndex > 0 ? column.index / columnMaxIndex : 0.5;
           const axisLead = windVector.x < 0 ? 1 - axis : windVector.x > 0 ? axis : 0.5;
-          const baseLean = windProfile.baseLean + windProfile.swayAmp * (0.5 + Math.sin(state.time * 0.24 + column.phase) * 0.5);
+          const baseLean = (windProfile.baseLean + windProfile.swayAmp * (0.5 + Math.sin(state.time * 0.24 + column.phase) * 0.5)) * motionScale;
           let gustForce = 0;
 
           state.gusts.forEach((gust) => {
@@ -3800,7 +4170,7 @@
               localEnvelope = pulse * stagger;
             }
 
-            gustForce += gust.amplitude * localEnvelope;
+            gustForce += gust.amplitude * localEnvelope * motionScale;
           });
 
           let target = baseLean + gustForce;
@@ -3817,7 +4187,7 @@
               ? (pointer.x - pointer.px) / Math.max(dt, 0.016)
               : (pointer.y - pointer.py) / Math.max(dt, 0.016);
             const motionNudge = clamp(pointerVelocity / 520, -1.6, 1.6) * windProfile.pointerMotion;
-            target += proximity * (windProfile.pointerPull + motionNudge);
+            target += proximity * (windProfile.pointerPull + motionNudge) * motionScale;
           });
 
           const force = (target - column.angle) * windProfile.stiffness - column.vel * 4.1;
@@ -3833,23 +4203,23 @@
           return;
         }
         const available = state.perchClusters.filter((cluster) => !cluster.falling && !cluster.landed);
-        const detachCount = clamp(Math.round(1 + available.length * (0.06 + Math.random() * 0.04)), 1, 5);
+        const detachCount = clamp(Math.round(1 + available.length * (0.012 + Math.random() * 0.008)), 1, 2);
         const shuffled = available.slice().sort(() => Math.random() - 0.5);
 
         state.perchClusters.forEach((cluster) => {
           if (cluster.falling) {
             return;
           }
-          cluster.vx += (Math.random() - 0.5) * 0.18;
-          cluster.angVel += (Math.random() - 0.5) * 0.04;
+          cluster.vx += (Math.random() - 0.5) * 0.06;
+          cluster.angVel += (Math.random() - 0.5) * 0.018;
         });
 
         shuffled.slice(0, detachCount).forEach((cluster, index) => {
           cluster.falling = true;
           cluster.landed = false;
-          cluster.vx = -0.8 - Math.random() * 1.4 + index * 0.06;
-          cluster.vy = 0.25 + Math.random() * 0.32;
-          cluster.angVel = (Math.random() - 0.5) * 0.18;
+          cluster.vx = -0.34 - Math.random() * 0.52 + index * 0.04;
+          cluster.vy = 0.14 + Math.random() * 0.18;
+          cluster.angVel = (Math.random() - 0.5) * 0.09;
         });
       }
 
@@ -3861,32 +4231,34 @@
         if (!region || !state.perchClusters.length) {
           return;
         }
+        const profile = getPerformanceProfile();
+        const motionScale = profile.perchMotion;
 
         state.perchWindSpawn -= dt;
         if (state.perchWindSpawn <= 0) {
           triggerPerchGust();
-          state.perchWindSpawn = 1.8 + Math.random() * 2.6;
+          state.perchWindSpawn = (3.4 + Math.random() * 4.6) / Math.max(0.72, motionScale);
         }
 
         const groundY = (state.perchTemplate?.groundY || (region.y + region.h * 0.92));
         state.perchClusters.forEach((cluster) => {
           if (!cluster.falling) {
-            const sway = Math.sin(state.time * 0.46 + cluster.phase) * state.activeFontSize * 0.16;
-            const lift = Math.cos(state.time * 0.28 + cluster.phase) * state.activeFontSize * 0.05;
+            const sway = Math.sin(state.time * 0.42 + cluster.phase) * state.activeFontSize * 0.09 * motionScale;
+            const lift = Math.cos(state.time * 0.24 + cluster.phase) * state.activeFontSize * 0.028 * motionScale;
             cluster.x += (cluster.baseX + sway - cluster.x) * Math.min(1, dt * 3.6);
             cluster.y += (cluster.baseY + lift - cluster.y) * Math.min(1, dt * 3.6);
             const restAngle = cluster.restAngle || 0;
-            cluster.angle += (((restAngle + Math.sin(state.time * 0.54 + cluster.phase) * 0.08)) - cluster.angle) * Math.min(1, dt * 2.1);
+            cluster.angle += (((restAngle + Math.sin(state.time * 0.48 + cluster.phase) * 0.05)) - cluster.angle) * Math.min(1, dt * 2.1);
             cluster.fade += (1 - cluster.fade) * Math.min(1, dt * 2.2);
             return;
           }
 
-          cluster.vx += Math.sin(state.time * 0.9 + cluster.phase) * dt * 0.18;
-          cluster.vy += dt * 0.74;
+          cluster.vx += Math.sin(state.time * 0.72 + cluster.phase) * dt * 0.1 * motionScale;
+          cluster.vy += dt * 0.48 * motionScale;
           cluster.x += cluster.vx * state.activeFontSize * dt;
           cluster.y += cluster.vy * state.activeFontSize * dt;
-          cluster.angle += cluster.angVel * dt * 4.2;
-          cluster.angVel *= Math.pow(0.98, dt * 60);
+          cluster.angle += cluster.angVel * dt * 3.1;
+          cluster.angVel *= Math.pow(0.986, dt * 60);
 
           if (cluster.y >= groundY) {
             cluster.y = groundY;
@@ -3926,8 +4298,9 @@
         glyph.redDropped = true;
         glyph.redFading = false;
         glyph.fade = 1;
-        glyph.vx = motionX * 0.045 + (Math.random() - 0.5) * 1.15 + (order === 0 ? -0.14 : 0.14);
-        glyph.vy = motionY * 0.03 - (0.24 + Math.random() * 0.38);
+        glyph.scale = Math.max(glyph.scale, 1.04);
+        glyph.vx = motionX * 0.065 + (Math.random() - 0.5) * 1.55 + (order === 0 ? -0.22 : 0.22);
+        glyph.vy = motionY * 0.045 - (0.52 + Math.random() * 0.58);
       }
 
       function breakScarletLink(link, pointer) {
@@ -3936,6 +4309,8 @@
         }
 
         link.broken = true;
+        link.breaking = false;
+        link.breakTimer = 0;
         const group = state.redGroups[link.groupId];
         if (group) {
           group.brokenCount = (group.brokenCount || 0) + 1;
@@ -3986,11 +4361,31 @@
             .sort((left, right) => left.dist - right.dist)
             .slice(0, 3)
             .forEach(({ link }) => {
-              breakScarletLink(link, pointer);
+              if (link.broken) {
+                return;
+              }
+              link.breaking = true;
+              link.breakTimer = Math.max(link.breakTimer, 0.08);
+              link.pullX = pointer.x;
+              link.pullY = pointer.y;
+              link.tug = 1;
             });
         });
 
         state.redLinks.forEach((link) => {
+          if (link.breaking && !link.broken) {
+            link.breakTimer = Math.max(0, link.breakTimer - dt);
+            link.tug = Math.max(0, link.tug - dt * 1.45);
+            if (link.breakTimer <= 0) {
+              const pullPointer = {
+                x: link.pullX,
+                y: link.pullY,
+                px: link.pullX - (Math.random() - 0.5) * state.activeFontSize * 2.4,
+                py: link.pullY - state.activeFontSize * 1.2
+              };
+              breakScarletLink(link, pullPointer);
+            }
+          }
           if (link.broken) {
             link.fade = Math.max(0, link.fade - dt * 2.4);
           }
@@ -4004,14 +4399,15 @@
         state.webs = state.webs.filter((web) => web.captures.length > 1 && web.decay > 0.06);
         state.webs.forEach((web) => {
           web.age += dt;
+          web.appear += (1 - web.appear) * Math.min(1, dt * 3.4);
           web.decay = Math.max(0, web.decay - dt * 0.012);
-          web.currentRadius += (web.targetRadius - web.currentRadius) * Math.min(1, dt * 0.92);
+          web.currentRadius += (web.targetRadius - web.currentRadius) * Math.min(1, dt * 0.58);
           web.captures.forEach((glyphIndex, captureIndex) => {
             const glyph = state.glyphs[glyphIndex];
             if (!glyph || glyph.webId !== web.id) {
               return;
             }
-            const pullRate = 1.6 + (captureIndex % 5) * 0.12;
+            const pullRate = 0.68 + (captureIndex % 5) * 0.06;
             glyph.webPull += (1 - glyph.webPull) * Math.min(1, dt * pullRate);
           });
         });
@@ -4034,6 +4430,12 @@
           - Curtain: hanging columns carried leftward by a steady breeze.
          ========================= */
       function updateGlyphs(dt) {
+        if (!state.isModeRunning) {
+          resetGlyphVisualState();
+          return;
+        }
+        const profile = getPerformanceProfile();
+        state.glyphMotionActive = false;
         const pointers = Array.from(state.pointers.values());
         const mimosaPointers = pointers.length > 0
           ? pointers
@@ -4042,6 +4444,27 @@
             : [];
         const webMap = state.mode === "web"
           ? new Map(state.webs.map((web) => [web.id, web]))
+          : null;
+        const scarletTugs = state.mode === "scarlet"
+          ? state.redLinks.reduce((map, link) => {
+              if (!link.breaking || link.broken || link.tug <= 0) {
+                return map;
+              }
+              [link.a, link.b].forEach((glyphIndex) => {
+                const glyph = state.glyphs[glyphIndex];
+                if (!glyph) {
+                  return;
+                }
+                const dx = link.pullX - glyph.baseX;
+                const dy = link.pullY - glyph.baseY;
+                const entry = map.get(glyphIndex) || { x: 0, y: 0, weight: 0 };
+                entry.x += dx * link.tug;
+                entry.y += dy * link.tug;
+                entry.weight += link.tug;
+                map.set(glyphIndex, entry);
+              });
+              return map;
+            }, new Map())
           : null;
 
         if (state.mode === "curtain") {
@@ -4064,7 +4487,7 @@
           updateScarletLinks(dt, pointers);
         }
 
-        state.glyphs.forEach((glyph) => {
+        state.glyphs.forEach((glyph, glyphIndex) => {
           let targetX = glyph.baseX;
           let targetY = glyph.baseY;
           let targetScale = 1;
@@ -4076,21 +4499,37 @@
 
           if (state.mode === "scarlet" && glyph.redDropped) {
             const bottom = state.textRegion ? state.textRegion.y + state.textRegion.h - glyph.fontSize * 0.55 : glyph.y;
-            glyph.vy += dt * state.activeFontSize * 1.42;
-            glyph.vx *= Math.pow(0.992, dt * 60);
-            glyph.x += glyph.vx * dt * state.activeFontSize * 2.2;
-            glyph.y += glyph.vy * dt * state.activeFontSize * 2.2;
-            glyph.rotation += glyph.vx * 0.0024;
+            glyph.vy += dt * state.activeFontSize * 1.86;
+            glyph.vx *= Math.pow(0.988, dt * 60);
+            glyph.x += glyph.vx * dt * state.activeFontSize * 2.8;
+            glyph.y += glyph.vy * dt * state.activeFontSize * 2.9;
+            glyph.rotation += glyph.vx * 0.0036;
+            glyph.scale += (0.96 - glyph.scale) * Math.min(1, dt * 4.2);
             if (glyph.y >= bottom) {
               glyph.y = bottom;
-              glyph.vy *= -0.12;
-              glyph.redFading = true;
+              glyph.vy *= -0.22;
+              glyph.vx *= 0.74;
+              if (Math.abs(glyph.vy) < state.activeFontSize * 0.045) {
+                glyph.redFading = true;
+              }
             }
             if (glyph.redFading) {
-              glyph.fade = Math.max(0, glyph.fade - dt * 0.22);
+              glyph.fade = Math.max(0, glyph.fade - dt * 0.28);
             }
             glyph.alpha = glyph.fade;
+            if (glyph.fade > 0.02 || Math.abs(glyph.vx) > 0.001 || Math.abs(glyph.vy) > 0.001) {
+              state.glyphMotionActive = true;
+            }
             return;
+          }
+
+          if (state.mode === "scarlet" && scarletTugs?.has(glyphIndex)) {
+            const tug = scarletTugs.get(glyphIndex);
+            const weight = Math.max(0.001, tug.weight);
+            targetX += (tug.x / weight) * 0.16;
+            targetY += (tug.y / weight) * 0.12;
+            targetRotation += (tug.x / weight) * 0.0014;
+            targetScale += 0.04 * Math.min(1, weight);
           }
 
           if (state.mode === "mimosa" && mimosaPointers.length > 0) {
@@ -4190,8 +4629,9 @@
               const sag = pull * (1 - shrinkRatio) * state.activeFontSize * (0.18 + Math.abs(Math.sin(glyph.seed + state.time * 0.48)) * 0.18);
               const webX = web.x + Math.cos(angle) * radius;
               const webY = web.y + Math.sin(angle) * radius * 0.97 + sag;
-              targetX = glyph.baseX + (webX - glyph.baseX) * pull;
-              targetY = glyph.baseY + (webY - glyph.baseY) * pull;
+              const dragEase = Math.pow(pull, 0.86) * 0.84;
+              targetX = glyph.baseX + (webX - glyph.baseX) * dragEase;
+              targetY = glyph.baseY + (webY - glyph.baseY) * (dragEase * 0.96);
               targetRotation = Math.sin(state.time * 0.46 + glyph.seed) * 0.05 + Math.sin(angle) * 0.18 * pull;
               targetScale = 1 - pull * (1 - shrinkRatio) * 0.11;
               targetAlpha = 0.86 + pull * 0.14;
@@ -4202,7 +4642,7 @@
           if (state.mode === "tide") {
             const region = state.textRegion;
             const direction = state.tideDirection === "left" ? -1 : 1;
-            const intensity = clamp(state.tideIntensity, 0.35, 3.2);
+            const intensity = clamp(state.tideIntensity, 0.35, 3.2) * profile.tideMotion;
             const activeWindow = 0.72;
             const cycleDuration = Math.max(2.6, 5.6 - intensity * 0.72);
             const cycle = (state.time / cycleDuration) % 1;
@@ -4216,23 +4656,25 @@
               : region.x - lead + (region.w + lead + trail) * waveProgress;
             const xDist = glyph.baseX - crestX;
             const envelope = isActive ? Math.exp(-(xDist * xDist) / Math.max(1, 2 * spread * spread)) : 0;
-            const bandPhase = ((glyph.baseY - region.y) / Math.max(region.h, 1)) * Math.PI * 2.05;
+            const bandPhase = ((glyph.baseY - region.y) / Math.max(region.h, 1)) * Math.PI * 2.2;
+            const localPhase = glyph.seed * 3.2 + glyph.lineIndex * 0.46 + glyph.charIndex * 0.11;
             const waveCurve =
-              Math.sin(bandPhase + xDist / Math.max(36, spread * 0.42) + state.time * (0.92 + intensity * 0.12)) +
-              Math.cos(bandPhase * 0.52 - xDist / Math.max(44, spread * 0.56) + state.time * 0.48) * 0.42;
+              Math.sin(bandPhase + xDist / Math.max(36, spread * 0.46) + state.time * (1 + intensity * 0.16) + localPhase) +
+              Math.cos(bandPhase * 0.56 - xDist / Math.max(44, spread * 0.58) + state.time * 0.54 + localPhase * 0.6) * 0.46;
             const trailField = isActive
               ? direction < 0
                 ? clamp((glyph.baseX - crestX) / Math.max(region.w * 0.7, 1), 0, 1)
                 : clamp((crestX - glyph.baseX) / Math.max(region.w * 0.7, 1), 0, 1)
               : 0;
-            const drift = direction * region.w * (0.035 + intensity * 0.055) * trailField * Math.sin(waveProgress * Math.PI);
-            const cross = Math.cos(bandPhase * 0.72 + state.time * 0.66 + glyph.seed) * state.activeFontSize * (0.08 + intensity * 0.12) * envelope;
-            const lift = waveCurve * state.activeFontSize * (0.24 + intensity * 0.46) * envelope;
+            const drift = direction * region.w * (0.032 + intensity * 0.05) * trailField * Math.sin(waveProgress * Math.PI);
+            const cross = Math.cos(bandPhase * 0.72 + state.time * 0.7 + localPhase) * state.activeFontSize * (0.06 + intensity * 0.16) * envelope;
+            const lift = waveCurve * state.activeFontSize * (0.14 + intensity * 0.34) * envelope;
+            const microBob = Math.sin(state.time * 1.4 + localPhase * 1.7) * state.activeFontSize * 0.04 * envelope;
 
             targetX += drift + cross;
-            targetY += lift;
-            targetRotation += lift * 0.0054 + drift * 0.0018;
-            targetScale += Math.abs(lift) * 0.0021;
+            targetY += lift + microBob;
+            targetRotation += lift * 0.0046 + drift * 0.0015 + cross * 0.0021;
+            targetScale += Math.abs(lift) * 0.0015;
 
             state.tideDrops.forEach((drop) => {
               const dx = glyph.baseX - drop.x;
@@ -4251,11 +4693,18 @@
               if (influence <= 0) {
                 return;
               }
-              targetX += -dx * influence * 0.08 + direction * influence * state.activeFontSize * 0.16;
-              targetY += -influence * state.activeFontSize * (1.15 + ringInfluence * 1.08) - dy * influence * 0.04;
-              targetRotation += dx * 0.0018 * influence;
-              targetScale += influence * 0.11;
-              sheen = Math.max(sheen, influence * 0.34);
+              const distSafe = Math.max(distance, 0.001);
+              const nx = dx / distSafe;
+              const ny = dy / distSafe;
+              const tx = -ny;
+              const ty = nx;
+              targetX += tx * ringInfluence * state.activeFontSize * (0.28 + intensity * 0.14) - nx * coreInfluence * state.activeFontSize * 0.16;
+              targetY += ty * ringInfluence * state.activeFontSize * 0.18 - ringInfluence * state.activeFontSize * (0.54 + intensity * 0.18) - ny * coreInfluence * state.activeFontSize * 0.08;
+              targetRotation += (tx + nx * 0.4) * 0.022 * influence;
+              targetScale -= ringInfluence * 0.12;
+              targetScale += coreInfluence * 0.05;
+              targetAlpha -= ringInfluence * 0.05;
+              sheen = Math.max(sheen, influence * 0.38);
             });
           }
 
@@ -4398,6 +4847,18 @@
 
           glyph.scale = clamp(glyph.scale, 0.7, 1.1);
           glyph.alpha = clamp(glyph.alpha, 0.16, 1);
+          if (
+            Math.abs(glyph.vx) > 0.001 ||
+            Math.abs(glyph.vy) > 0.001 ||
+            Math.abs(glyph.scaleV) > 0.001 ||
+            Math.abs(glyph.rotationV) > 0.001 ||
+            Math.abs(targetX - glyph.x) > 0.08 ||
+            Math.abs(targetY - glyph.y) > 0.08 ||
+            Math.abs(targetScale - glyph.scale) > 0.002 ||
+            Math.abs(targetRotation - glyph.rotation) > 0.002
+          ) {
+            state.glyphMotionActive = true;
+          }
         });
       }
 
@@ -4420,10 +4881,11 @@
         }
 
         const r = state.textRegion;
+        const profile = getPerformanceProfile();
 
         ctx.save();
         ctx.shadowColor = state.theme.shadow;
-        ctx.shadowBlur = 28;
+        ctx.shadowBlur = profile.panelShadowBlur;
         ctx.shadowOffsetY = 12;
         roundRectPath(ctx, r.x, r.y, r.w, r.h, 28);
         ctx.fillStyle = state.theme.canvas;
@@ -4441,28 +4903,30 @@
         if (state.mode !== "perch" || !state.perchTemplate) {
           return;
         }
-        const { branchPaths, leafZones, twigs } = state.perchTemplate;
+        const { branchPaths, leafZones, twigs, trunk } = state.perchTemplate;
         ctx.save();
-        ctx.globalAlpha = 0.95;
+        ctx.globalAlpha = 0.92;
 
-        leafZones.forEach((zone, index) => {
+        leafZones.forEach((zone) => {
           ctx.save();
           ctx.translate(zone.x + zone.w * 0.5, zone.y + zone.h * 0.5);
           ctx.rotate(zone.tilt || 0);
-          const gradient = ctx.createLinearGradient(0, -zone.h * 0.5, 0, zone.h * 0.5);
-          gradient.addColorStop(0, index % 2 === 0 ? "rgba(114, 144, 185, 0.78)" : "rgba(103, 132, 170, 0.72)");
-          gradient.addColorStop(1, "rgba(83, 111, 148, 0.82)");
-          ctx.fillStyle = gradient;
-          ctx.strokeStyle = "rgba(227, 234, 246, 0.09)";
-          ctx.lineWidth = Math.max(1.2, state.activeFontSize * 0.05);
+          ctx.strokeStyle = "rgba(167, 192, 219, 0.22)";
+          ctx.lineWidth = Math.max(1.35, state.activeFontSize * 0.052);
           ctx.beginPath();
           ctx.ellipse(0, 0, zone.w * 0.5, zone.h * 0.5, 0, 0, Math.PI * 2);
-          ctx.fill();
           ctx.stroke();
           ctx.restore();
         });
 
-        ctx.strokeStyle = "rgba(245, 242, 233, 0.98)";
+        if (trunk) {
+          ctx.strokeStyle = "rgba(245, 242, 233, 0.24)";
+          ctx.lineWidth = Math.max(1.6, state.activeFontSize * 0.06);
+          roundRectPath(ctx, trunk.x, trunk.y, trunk.w, trunk.h, trunk.radius || 18);
+          ctx.stroke();
+        }
+
+        ctx.strokeStyle = "rgba(245, 242, 233, 0.3)";
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
         branchPaths.forEach((branch) => {
@@ -4478,8 +4942,8 @@
           ctx.stroke();
         });
 
-        ctx.strokeStyle = "rgba(245, 242, 233, 0.94)";
-        ctx.lineWidth = Math.max(2.2, state.activeFontSize * 0.085);
+        ctx.strokeStyle = "rgba(245, 242, 233, 0.22)";
+        ctx.lineWidth = Math.max(1.4, state.activeFontSize * 0.05);
         twigs.forEach((twig) => {
           ctx.beginPath();
           ctx.moveTo(twig.x1, twig.y1);
@@ -4551,10 +5015,17 @@
           }
           const alpha = link.broken ? link.fade * 0.42 : Math.min(0.92, link.fade);
           ctx.globalAlpha = alpha;
-          ctx.lineWidth = link.broken ? 1.15 : 1.85;
+          ctx.lineWidth = link.broken ? 1.15 : link.breaking ? 2.25 : 1.85;
           ctx.beginPath();
-          ctx.moveTo(a.x, a.y);
-          ctx.lineTo(b.x, b.y);
+          if (link.breaking && !link.broken) {
+            const cx = (a.x + b.x) * 0.5 + (link.pullX - (a.x + b.x) * 0.5) * 0.52;
+            const cy = (a.y + b.y) * 0.5 + (link.pullY - (a.y + b.y) * 0.5) * 0.52;
+            ctx.moveTo(a.x, a.y);
+            ctx.quadraticCurveTo(cx, cy, b.x, b.y);
+          } else {
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+          }
           ctx.stroke();
         });
 
@@ -4625,15 +5096,18 @@
         }
 
         ctx.save();
+        const profile = getPerformanceProfile();
         const webStroke = rgbaFromHex(state.surfaceText, 0.78);
         const webSoft = rgbaFromHex(state.surfaceText, 0.32);
         ctx.strokeStyle = webStroke;
         ctx.shadowColor = rgbaFromHex(state.surfaceText, 0.16);
-        ctx.shadowBlur = 10;
+        ctx.shadowBlur = profile.webShadowBlur;
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
 
         state.webs.forEach((web) => {
+          const appear = clamp(web.appear, 0, 1);
+          const reveal = 1 - Math.pow(1 - appear, 2.2);
           const attached = web.captures
             .map((index) => state.glyphs[index])
             .filter(Boolean)
@@ -4649,7 +5123,7 @@
               const jitter = Math.sin(index * 1.4 + ratio * 6.2 + web.age * 0.9) * state.activeFontSize * 0.03;
               const radius = Math.max(
                 state.activeFontSize * 0.34,
-                glyph.webRadius * ratio * (web.currentRadius / Math.max(web.radius, 1)) + jitter
+                glyph.webRadius * ratio * (web.currentRadius / Math.max(web.radius, 1)) * reveal + jitter
               );
               const x = web.x + Math.cos(glyph.webAngle) * radius;
               const y = web.y + Math.sin(glyph.webAngle) * radius * 0.97;
@@ -4660,8 +5134,8 @@
               }
             });
             ctx.closePath();
-            ctx.lineWidth = ringIndex >= 2 ? 1.75 : 1.25;
-            ctx.globalAlpha = (0.22 + ratio * 0.46) * web.decay;
+            ctx.lineWidth = ringIndex >= 2 ? 2.35 : 1.7;
+            ctx.globalAlpha = (0.24 + ratio * 0.5) * web.decay * reveal;
             ctx.stroke();
           });
 
@@ -4669,8 +5143,8 @@
             ctx.beginPath();
             ctx.moveTo(web.x, web.y);
             ctx.lineTo(glyph.x, glyph.y);
-            ctx.lineWidth = 1.15;
-            ctx.globalAlpha = 0.52 * web.decay;
+            ctx.lineWidth = 1.55;
+            ctx.globalAlpha = 0.58 * web.decay * reveal;
             ctx.stroke();
           });
 
@@ -4684,10 +5158,19 @@
             ctx.lineTo(next.x, next.y);
           });
           ctx.strokeStyle = webSoft;
-          ctx.lineWidth = 0.9;
-          ctx.globalAlpha = 0.22 * web.decay;
+          ctx.lineWidth = 1.1;
+          ctx.globalAlpha = 0.26 * web.decay * reveal;
           ctx.stroke();
           ctx.strokeStyle = webStroke;
+
+          if (appear < 0.75) {
+            ctx.beginPath();
+            ctx.strokeStyle = rgbaFromHex(state.surfaceText, 0.2 * (1 - appear));
+            ctx.lineWidth = 2.1;
+            ctx.arc(web.x, web.y, web.radius * (0.24 + appear * 0.82), 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.strokeStyle = webStroke;
+          }
 
           ctx.beginPath();
           ctx.fillStyle = rgbaFromHex(state.surfaceText, 0.24 * web.decay);
@@ -4700,7 +5183,7 @@
       }
 
       function drawTideEffects() {
-        if (state.mode !== "tide" || !state.textRegion) {
+        if (state.mode !== "tide" || !state.textRegion || !state.isModeRunning) {
           return;
         }
 
@@ -4739,27 +5222,24 @@
           const pulse = Math.sin(progress * Math.PI);
           const radius = drop.radius * (0.16 + progress * 0.86);
           const gradient = ctx.createRadialGradient(drop.x, drop.y, 0, drop.x, drop.y, radius);
-          gradient.addColorStop(0, `rgba(175, 205, 232, ${0.24 * pulse})`);
-          gradient.addColorStop(0.38, `rgba(175, 205, 232, ${0.12 * pulse})`);
+          gradient.addColorStop(0, `rgba(175, 205, 232, ${0.18 * pulse})`);
+          gradient.addColorStop(0.38, `rgba(175, 205, 232, ${0.09 * pulse})`);
           gradient.addColorStop(1, "rgba(175, 205, 232, 0)");
           ctx.fillStyle = gradient;
           ctx.beginPath();
           ctx.arc(drop.x, drop.y, radius, 0, Math.PI * 2);
           ctx.fill();
 
-          [0, 0.22, 0.46].forEach((offset, index) => {
-            const ringRadius = radius * (0.58 + offset);
-            const alpha = Math.max(0, (0.42 - index * 0.1) * (1 - progress));
-            ctx.beginPath();
-            ctx.strokeStyle = `rgba(226, 238, 250, ${alpha})`;
-            ctx.lineWidth = Math.max(1.1, state.activeFontSize * 0.065);
-            ctx.arc(drop.x, drop.y, ringRadius, 0, Math.PI * 2);
-            ctx.stroke();
-          });
+          const ringRadius = radius * 0.88;
+          ctx.beginPath();
+          ctx.strokeStyle = `rgba(228, 239, 250, ${Math.max(0, 0.18 * (1 - progress))})`;
+          ctx.lineWidth = Math.max(1, state.activeFontSize * 0.05);
+          ctx.arc(drop.x, drop.y, ringRadius, 0, Math.PI * 2);
+          ctx.stroke();
 
           ctx.beginPath();
-          ctx.fillStyle = `rgba(241, 246, 252, ${0.18 * (1 - progress)})`;
-          ctx.arc(drop.x, drop.y - radius * 0.1, Math.max(4, radius * 0.08), 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(241, 246, 252, ${0.12 * (1 - progress)})`;
+          ctx.ellipse(drop.x, drop.y - radius * 0.08, Math.max(3.5, radius * 0.09), Math.max(2.4, radius * 0.045), 0, 0, Math.PI * 2);
           ctx.fill();
         });
         ctx.restore();
@@ -4801,11 +5281,12 @@
 
       function drawGlyphs() {
         ctx.save();
+        const profile = getPerformanceProfile();
         ctx.font = `500 ${state.activeFontSize}px ${TEXT_FONT}`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.shadowColor = state.theme.shadow;
-        ctx.shadowBlur = 10;
+        ctx.shadowBlur = profile.textShadowBlur;
 
         state.glyphs.forEach((glyph) => {
           if (glyph.char === " ") {
@@ -4838,6 +5319,7 @@
         }
 
         ctx.save();
+        const profile = getPerformanceProfile();
         state.snowflakes.forEach((flake) => {
           const driftX = Math.sin(state.time * (0.8 + flake.wobble) + flake.driftPhase) * flake.radius * 0.42;
           const spin = state.time * (0.16 + flake.wobble * 0.08) + flake.driftPhase;
@@ -4856,7 +5338,7 @@
 
           ctx.globalAlpha = flake.alpha;
           ctx.shadowColor = "rgba(255, 255, 255, 0.22)";
-          ctx.shadowBlur = flake.radius * 2.5;
+          ctx.shadowBlur = flake.radius * 2.5 * profile.snowGlowMultiplier;
           ctx.beginPath();
           ctx.fillStyle = flakeGradient;
           ctx.arc(flake.x + driftX, flake.y, flake.radius, 0, Math.PI * 2);
@@ -4909,7 +5391,7 @@
           state.growthReplayActive = false;
           state.growthLastReplay = [];
         }
-        state.needsLayout = true;
+        markLayoutDirty();
       }
 
       desktopEntryButton.addEventListener("click", () => {
@@ -4940,6 +5422,7 @@
           syncSourceFromPerch();
           updateLabels();
         }
+        markInteraction();
       });
 
       fileInput.addEventListener("change", async () => {
@@ -4958,6 +5441,7 @@
             seedPerchTextFromSource();
             updateLabels();
           }
+          markInteraction();
         } finally {
           fileInput.value = "";
         }
@@ -4967,6 +5451,7 @@
         legacyCanvasColor.addEventListener("input", () => {
           state.surfaceCanvas = normalizeHex(legacyCanvasColor.value, DEFAULT_THEME.canvas);
           syncSurfaceTheme();
+          markInteraction();
         });
       }
 
@@ -4974,26 +5459,27 @@
         legacyTextColor.addEventListener("input", () => {
           state.surfaceText = normalizeHex(legacyTextColor.value, DEFAULT_THEME.text);
           syncSurfaceTheme();
+          markInteraction();
         });
       }
 
       fontSizeInput.addEventListener("input", () => {
         state.fontSize = Number(fontSizeInput.value);
         updateLabels();
-        state.needsLayout = true;
+        markLayoutDirty();
       });
 
       densityInput.addEventListener("input", () => {
         state.density = Number(densityInput.value);
         updateLabels();
-        state.needsLayout = true;
+        markLayoutDirty();
       });
 
       if (rowGapInput) {
         rowGapInput.addEventListener("input", () => {
           state.rowGapScale = Number(rowGapInput.value);
           updateLabels();
-          state.needsLayout = true;
+          markLayoutDirty();
         });
       }
 
@@ -5001,20 +5487,20 @@
         columnGapInput.addEventListener("input", () => {
           state.columnGapScale = Number(columnGapInput.value);
           updateLabels();
-          state.needsLayout = true;
+          markLayoutDirty();
         });
       }
 
       canvasWidthInput.addEventListener("input", () => {
         state.canvasWidthScale = Number(canvasWidthInput.value);
         updateLabels();
-        state.needsLayout = true;
+        markLayoutDirty();
       });
 
       canvasHeightInput.addEventListener("input", () => {
         state.canvasHeightScale = Number(canvasHeightInput.value);
         updateLabels();
-        state.needsLayout = true;
+        markLayoutDirty();
       });
 
       layoutButtons.forEach((button) => {
@@ -5025,7 +5511,7 @@
           }
           state.layoutOrientation = nextLayout;
           updateLabels();
-          state.needsLayout = true;
+          markLayoutDirty();
         });
       });
 
@@ -5037,8 +5523,60 @@
           }
           state.readingDirection = nextDirection;
           updateLabels();
-          state.needsLayout = true;
+          markLayoutDirty();
         });
+      });
+
+      performanceButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const nextTier = button.dataset.performance;
+          if (!nextTier || nextTier === state.performanceTier) {
+            return;
+          }
+          state.performanceTier = nextTier;
+          trimDynamicObjectsToProfile();
+          updateLabels();
+          try {
+            localStorage.setItem(PERFORMANCE_STORAGE_KEY, nextTier);
+          } catch (error) {
+            // Ignore storage failures.
+          }
+          markInteraction();
+        });
+      });
+
+      if (modeStartButton) {
+        const handleStartTrigger = () => {
+          if (state.isModeRunning) {
+            return;
+          }
+          startModeAnimation();
+        };
+        modeStartButton.addEventListener("click", handleStartTrigger);
+        modeStartButton.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            handleStartTrigger();
+          }
+        });
+      }
+
+      window.addEventListener("keydown", (event) => {
+        if (state.deviceMode !== "desktop" || state.view !== "workspace") {
+          return;
+        }
+        if (event.code !== "Space" || event.repeat) {
+          return;
+        }
+        const target = event.target;
+        const tagName = target?.tagName;
+        if (tagName === "INPUT" || tagName === "TEXTAREA" || target?.isContentEditable) {
+          return;
+        }
+        event.preventDefault();
+        if (!state.isModeRunning) {
+          startModeAnimation();
+        }
       });
 
       windButtons.forEach((button) => {
@@ -5051,6 +5589,7 @@
           state.gusts.length = 0;
           scheduleCurtainGust(true);
           updateLabels();
+          markInteraction();
         });
       });
 
@@ -5064,6 +5603,7 @@
           state.gusts.length = 0;
           scheduleCurtainGust(true);
           updateLabels();
+          markInteraction();
         });
       });
 
@@ -5071,6 +5611,7 @@
         snowSizeInput.addEventListener("input", () => {
           state.snowSize = Number(snowSizeInput.value);
           updateLabels();
+          markInteraction();
         });
       }
 
@@ -5078,6 +5619,7 @@
         snowDensityInput.addEventListener("input", () => {
           state.snowDensity = Number(snowDensityInput.value);
           updateLabels();
+          markInteraction();
         });
       }
 
@@ -5089,6 +5631,7 @@
           }
           state.webMode = nextMode;
           updateLabels();
+          markInteraction();
         });
       });
 
@@ -5096,6 +5639,7 @@
         webSizeInput.addEventListener("input", () => {
           state.webSize = Number(webSizeInput.value);
           updateLabels();
+          markInteraction();
         });
       }
 
@@ -5107,6 +5651,7 @@
           }
           state.tideDirection = nextDirection;
           updateLabels();
+          markInteraction();
         });
       });
 
@@ -5114,6 +5659,7 @@
         tideIntensityInput.addEventListener("input", () => {
           state.tideIntensity = Number(tideIntensityInput.value);
           updateLabels();
+          markInteraction();
         });
       }
 
@@ -5122,6 +5668,7 @@
           state.growthReady = true;
           state.growthReplayActive = false;
           updateLabels();
+          markInteraction();
         });
       }
 
@@ -5130,6 +5677,7 @@
           resetGrowthState(true);
           state.growthReady = false;
           updateLabels();
+          markInteraction();
         });
       }
 
@@ -5137,6 +5685,7 @@
         growthReplayButton.addEventListener("click", () => {
           startGrowthReplay();
           updateLabels();
+          markInteraction();
         });
       }
 
@@ -5145,7 +5694,7 @@
           state.perchLeafText = leafTextInput.value;
           syncSourceFromPerch();
           updateLabels();
-          state.needsLayout = true;
+          markLayoutDirty();
         });
       }
 
@@ -5154,7 +5703,7 @@
           state.perchTrunkText = trunkTextInput.value;
           syncSourceFromPerch();
           updateLabels();
-          state.needsLayout = true;
+          markLayoutDirty();
         });
       }
 
@@ -5166,6 +5715,7 @@
           }
           const previousMode = state.mode;
           state.mode = nextMode;
+          state.isModeRunning = false;
           if (nextMode === "curtain") {
             state.layoutOrientation = "vertical";
             state.readingDirection = "rtl";
@@ -5179,33 +5729,28 @@
           } else if (previousMode === "perch") {
             textInput.value = state.sourceText;
           }
-          state.pointers.clear();
-          state.hoverPointer = null;
-          state.snowflakes.length = 0;
-          state.snowSpawn = 0;
-          state.webs = [];
-          state.tideDrops = [];
-          state.growthReplayActive = false;
+          clearTransientState(false);
           if (nextMode === "growth") {
             state.growthReady = false;
             state.growthLastReplay = [];
             state.growthSequence = buildGrowthSequence(state.sourceText);
             resetGrowthState(false);
           }
-          state.gusts.length = 0;
-          state.perchWindSpawn = 0.35;
           scheduleCurtainGust(nextMode === "curtain");
           refreshCanvasTouchAction();
           modeButtons.forEach((item) => {
             item.classList.toggle("is-active", item.dataset.mode === nextMode);
           });
           updateLabels();
-          state.needsLayout = true;
+          markLayoutDirty();
         });
       });
 
       canvas.addEventListener("pointerdown", (event) => {
         if (state.view !== "workspace") {
+          return;
+        }
+        if (!state.isModeRunning) {
           return;
         }
         if (state.mode === "growth" && event.pointerType !== "mouse" && state.pointers.size > 0) {
@@ -5216,6 +5761,7 @@
         }
         const point = pointFromEvent(event);
         state.pointers.set(event.pointerId, point);
+        markInteraction();
         if (state.mode === "growth" && state.growthReady && state.growthCursor < state.growthSequence.length) {
           state.growthDrawing = true;
           state.growthReplayActive = false;
@@ -5242,9 +5788,13 @@
 
       canvas.addEventListener("pointermove", (event) => {
         if (!state.pointers.has(event.pointerId) && event.pointerType === "mouse") {
+          if (!state.isModeRunning) {
+            return;
+          }
           const hoverPoint = pointFromEvent(event);
           hoverPoint.strength = 0.7;
           state.hoverPointer = hoverPoint;
+          markInteraction();
         }
         if (!state.pointers.has(event.pointerId)) {
           return;
@@ -5257,6 +5807,7 @@
         next.px = previous.x;
         next.py = previous.y;
         state.pointers.set(event.pointerId, next);
+        markInteraction();
         if (state.mode === "growth" && state.growthDrawing && state.growthReady) {
           const stroke = state.growthStrokes[state.growthStrokes.length - 1];
           const lastPoint = stroke?.points?.[stroke.points.length - 1];
@@ -5292,10 +5843,12 @@
           updateLabels();
         }
         if (event.pointerType !== "mouse") {
+          markInteraction();
           return;
         }
         if (event.type === "pointerleave") {
           state.hoverPointer = null;
+          markInteraction();
           return;
         }
         if (event.buttons === 0) {
@@ -5303,6 +5856,7 @@
           hoverPoint.strength = 0.7;
           state.hoverPointer = hoverPoint;
         }
+        markInteraction();
       }
 
       canvas.addEventListener("pointerup", releasePointer);
@@ -5317,11 +5871,37 @@
 
       window.addEventListener("resize", queueResize);
       window.addEventListener("orientationchange", queueResize);
+      document.addEventListener("visibilitychange", () => {
+        state.pageVisible = !document.hidden;
+        state.lastFrame = performance.now();
+        if (state.pageVisible) {
+          markDirty();
+        }
+      });
 
       /* =========================
          Animation loop
          ========================= */
       function frame(now) {
+        state.frameRequested = false;
+        state.frameHandle = 0;
+        if (!state.pageVisible) {
+          state.lastFrame = now;
+          return;
+        }
+        const profile = getPerformanceProfile();
+        const forceFrame = state.needsLayout || state.needsRender;
+        const isDynamic = state.view === "workspace" && state.isModeRunning && (modeHasContinuousAnimation() || hasTransientMotion() || state.pointers.size > 0 || (state.mode === "mimosa" && !!state.hoverPointer));
+        const idleFor = now - state.lastInteractionTime;
+        const targetFps = isDynamic
+          ? (idleFor > 2200 ? profile.idleFps : profile.activeFps)
+          : Math.max(6, profile.idleFps - 2);
+        const minInterval = 1000 / Math.max(1, targetFps);
+        if (!forceFrame && state.lastRenderAt > 0 && now - state.lastRenderAt < minInterval) {
+          requestFrame();
+          return;
+        }
+
         const dt = Math.min(0.033, (now - state.lastFrame) / 1000 || 0.016);
         state.lastFrame = now;
         state.time += dt;
@@ -5330,10 +5910,19 @@
           rebuildLayout();
         }
 
-        updateSnowflakes(dt);
-        updateGlyphs(dt);
+        if (state.isModeRunning && state.view === "workspace") {
+          updateSnowflakes(dt);
+          updateGlyphs(dt);
+        } else {
+          state.glyphMotionActive = false;
+          resetGlyphVisualState();
+        }
         render();
-        requestAnimationFrame(frame);
+        state.lastRenderAt = now;
+        state.needsRender = false;
+        if (shouldContinueFrame(now)) {
+          requestFrame();
+        }
       }
 
       /* =========================
@@ -5357,7 +5946,8 @@
         applyDevicePreset("desktop");
         activateWorkspace(true, "desktop");
       }
-      requestAnimationFrame(frame);
+      updateLabels();
+      markDirty();
     })();
   </script>
 </body>
