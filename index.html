@@ -1642,7 +1642,7 @@
                 <span class="field-label">蛛网大小</span>
                 <span class="field-value" id="webSizeValue">1.00x</span>
               </div>
-              <input class="range-input" id="webSizeInput" type="range" min="0.75" max="1.55" step="0.01" value="1.00" />
+              <input class="range-input" id="webSizeInput" type="range" min="0.45" max="1.35" step="0.01" value="0.82" />
             </div>
           </div>
 
@@ -1666,7 +1666,7 @@
                 <span class="field-label">流动强度</span>
                 <span class="field-value" id="tideIntensityValue">1.00x</span>
               </div>
-              <input class="range-input" id="tideIntensityInput" type="range" min="0.50" max="1.75" step="0.01" value="1.00" />
+              <input class="range-input" id="tideIntensityInput" type="range" min="0.35" max="3.20" step="0.01" value="1.20" />
             </div>
           </div>
 
@@ -2082,18 +2082,19 @@
         }
         const baseScale = state.webMode === "set"
           ? state.webSize
-          : 0.88 + Math.random() * 0.42;
-        const radius = clamp(state.activeFontSize * 5.1 * baseScale, 76, 148);
+          : 0.54 + Math.random() * 0.28;
+        const radius = clamp(state.activeFontSize * 4.15 * baseScale, 46, 108);
         const web = {
           id: state.nextWebId++,
           x: point.x,
           y: point.y,
           radius,
           currentRadius: radius,
-          targetRadius: radius * (0.34 + Math.random() * 0.12),
-          spin: (Math.random() - 0.5) * 0.14,
+          targetRadius: radius * (0.22 + Math.random() * 0.12),
+          spin: (Math.random() - 0.5) * 0.08,
           captures: [],
-          age: 0
+          age: 0,
+          decay: 1
         };
 
         state.glyphs.forEach((glyph, index) => {
@@ -2109,10 +2110,14 @@
           glyph.webId = web.id;
           glyph.webAngle = Math.atan2(dy, dx) + (Math.random() - 0.5) * 0.08;
           glyph.webRadius = Math.max(state.activeFontSize * 0.55, dist);
+          glyph.webPull = 0;
           web.captures.push(index);
         });
 
         if (web.captures.length) {
+          if (state.webs.length > 9) {
+            state.webs.splice(0, state.webs.length - 9);
+          }
           state.webs.push(web);
         }
       }
@@ -2124,10 +2129,10 @@
         state.tideDrops.push({
           x: point.x,
           y: point.y,
-          radius: clamp(state.activeFontSize * 5.8, 84, 168),
+          radius: clamp(state.activeFontSize * (6.8 + state.tideIntensity * 1.3), 112, 248),
           age: 0,
-          duration: 1.12,
-          strength: 0.86 + Math.random() * 0.24
+          duration: 1.52 + state.tideIntensity * 0.14,
+          strength: 0.94 + Math.random() * 0.38
         });
       }
 
@@ -2690,6 +2695,7 @@
           webId: -1,
           webAngle: 0,
           webRadius: 0,
+          webPull: 0,
           growthOrder: -1,
           growthBorn: 0,
           growthRotation: 0,
@@ -3192,40 +3198,40 @@
         const inner = getInnerRegion(region);
         const branchPaths = [
           {
-            width: inner.h * 0.145,
+            width: inner.h * 0.16,
             points: [
-              [0.02, 0.84], [0.06, 0.74], [0.11, 0.66], [0.18, 0.59], [0.27, 0.49],
-              [0.38, 0.39], [0.51, 0.29], [0.66, 0.24], [0.84, 0.25], [0.96, 0.22]
+              [0.03, 0.86], [0.1, 0.76], [0.18, 0.68], [0.29, 0.58], [0.43, 0.46],
+              [0.59, 0.35], [0.74, 0.28], [0.92, 0.25]
             ]
           },
           {
-            width: inner.h * 0.105,
+            width: inner.h * 0.1,
             points: [
-              [0.20, 0.34], [0.34, 0.28], [0.49, 0.23], [0.65, 0.18], [0.84, 0.16]
+              [0.19, 0.58], [0.27, 0.47], [0.38, 0.36], [0.54, 0.26], [0.72, 0.18]
             ]
           },
           {
-            width: inner.h * 0.08,
+            width: inner.h * 0.082,
             points: [
-              [0.57, 0.28], [0.68, 0.38], [0.79, 0.5], [0.92, 0.61]
+              [0.5, 0.43], [0.62, 0.54], [0.73, 0.64], [0.88, 0.73]
             ]
           },
           {
-            width: inner.h * 0.062,
+            width: inner.h * 0.068,
             points: [
-              [0.45, 0.45], [0.58, 0.54], [0.69, 0.66]
+              [0.35, 0.52], [0.42, 0.62], [0.51, 0.75]
             ]
           },
           {
-            width: inner.h * 0.052,
+            width: inner.h * 0.056,
             points: [
-              [0.14, 0.44], [0.08, 0.35], [0.03, 0.28]
+              [0.15, 0.64], [0.08, 0.52], [0.03, 0.43]
             ]
           },
           {
             width: inner.h * 0.04,
             points: [
-              [0.72, 0.16], [0.83, 0.1], [0.95, 0.08]
+              [0.67, 0.31], [0.81, 0.21], [0.95, 0.16]
             ]
           }
         ].map((path) => ({
@@ -3236,50 +3242,44 @@
           }))
         }));
 
-        const leafFans = [
-          { x: 0.07, y: 0.27, dir: 2.3, scale: 0.9 },
-          { x: 0.14, y: 0.16, dir: 2.02, scale: 0.78 },
-          { x: 0.27, y: 0.34, dir: 1.6, scale: 1.18 },
-          { x: 0.36, y: 0.16, dir: 1.52, scale: 0.8 },
-          { x: 0.52, y: 0.12, dir: 1.5, scale: 0.88 },
-          { x: 0.67, y: 0.14, dir: 1.42, scale: 0.98 },
-          { x: 0.83, y: 0.18, dir: 0.98, scale: 1.08 },
-          { x: 0.78, y: 0.52, dir: 1.14, scale: 1.08 },
-          { x: 0.59, y: 0.67, dir: 1.36, scale: 0.92 },
-          { x: 0.38, y: 0.63, dir: 1.82, scale: 1.02 },
-          { x: 0.92, y: 0.62, dir: 0.98, scale: 0.78 },
-          { x: 0.04, y: 0.42, dir: 2.36, scale: 0.86 }
-        ].map((fan) => ({
-          x: inner.x + inner.w * fan.x,
-          y: inner.y + inner.h * fan.y,
-          dir: fan.dir,
-          scale: fan.scale,
-          size: inner.w * (0.034 + fan.scale * 0.012)
+        const leafZones = [
+          { x: 0.14, y: 0.25, w: 0.23, h: 0.18, tilt: -0.12 },
+          { x: 0.38, y: 0.22, w: 0.28, h: 0.18, tilt: 0.08 },
+          { x: 0.72, y: 0.22, w: 0.25, h: 0.17, tilt: -0.08 },
+          { x: 0.28, y: 0.56, w: 0.31, h: 0.21, tilt: 0.06 },
+          { x: 0.76, y: 0.56, w: 0.28, h: 0.22, tilt: -0.08 },
+          { x: 0.54, y: 0.78, w: 0.22, h: 0.17, tilt: 0.1 }
+        ].map((zone) => ({
+          x: inner.x + inner.w * zone.x,
+          y: inner.y + inner.h * zone.y,
+          w: inner.w * zone.w,
+          h: inner.h * zone.h,
+          tilt: zone.tilt
         }));
 
         const trunk = {
-          x: inner.x + inner.w * 0.12,
-          y: inner.y + inner.h * 0.16,
-          w: inner.w * 0.78,
-          h: inner.h * 0.64
+          x: inner.x + inner.w * 0.08,
+          y: inner.y + inner.h * 0.14,
+          w: inner.w * 0.82,
+          h: inner.h * 0.68
         };
         const trunkRects = [
-          { x: inner.x + inner.w * 0.05, y: inner.y + inner.h * 0.66, w: inner.w * 0.19, h: inner.h * 0.13 },
-          { x: inner.x + inner.w * 0.2, y: inner.y + inner.h * 0.54, w: inner.w * 0.18, h: inner.h * 0.11 },
-          { x: inner.x + inner.w * 0.37, y: inner.y + inner.h * 0.42, w: inner.w * 0.16, h: inner.h * 0.12 },
-          { x: inner.x + inner.w * 0.5, y: inner.y + inner.h * 0.28, w: inner.w * 0.18, h: inner.h * 0.1 },
-          { x: inner.x + inner.w * 0.69, y: inner.y + inner.h * 0.22, w: inner.w * 0.18, h: inner.h * 0.09 },
-          { x: inner.x + inner.w * 0.67, y: inner.y + inner.h * 0.44, w: inner.w * 0.13, h: inner.h * 0.18 },
-          { x: inner.x + inner.w * 0.47, y: inner.y + inner.h * 0.54, w: inner.w * 0.15, h: inner.h * 0.11 }
+          { x: inner.x + inner.w * 0.05, y: inner.y + inner.h * 0.71, w: inner.w * 0.18, h: inner.h * 0.12 },
+          { x: inner.x + inner.w * 0.19, y: inner.y + inner.h * 0.6, w: inner.w * 0.18, h: inner.h * 0.1 },
+          { x: inner.x + inner.w * 0.34, y: inner.y + inner.h * 0.48, w: inner.w * 0.19, h: inner.h * 0.1 },
+          { x: inner.x + inner.w * 0.5, y: inner.y + inner.h * 0.36, w: inner.w * 0.18, h: inner.h * 0.09 },
+          { x: inner.x + inner.w * 0.67, y: inner.y + inner.h * 0.28, w: inner.w * 0.18, h: inner.h * 0.08 },
+          { x: inner.x + inner.w * 0.63, y: inner.y + inner.h * 0.55, w: inner.w * 0.13, h: inner.h * 0.16 },
+          { x: inner.x + inner.w * 0.4, y: inner.y + inner.h * 0.63, w: inner.w * 0.14, h: inner.h * 0.11 }
         ];
         const twigs = [
-          [0.18, 0.17, 0.13, 0.09],
-          [0.34, 0.18, 0.28, 0.09],
-          [0.57, 0.16, 0.63, 0.07],
-          [0.74, 0.13, 0.82, 0.07],
-          [0.69, 0.47, 0.76, 0.56],
-          [0.52, 0.58, 0.61, 0.67],
-          [0.1, 0.31, 0.04, 0.24]
+          [0.18, 0.47, 0.11, 0.39],
+          [0.34, 0.37, 0.27, 0.28],
+          [0.56, 0.26, 0.64, 0.17],
+          [0.74, 0.22, 0.83, 0.14],
+          [0.66, 0.58, 0.75, 0.67],
+          [0.46, 0.67, 0.56, 0.78],
+          [0.1, 0.55, 0.03, 0.47]
         ].map(([x1, y1, x2, y2]) => ({
           x1: inner.x + inner.w * x1,
           y1: inner.y + inner.h * y1,
@@ -3291,7 +3291,7 @@
           trunk,
           trunkRects,
           branchPaths,
-          leafFans,
+          leafZones,
           twigs,
           groundY: inner.y + inner.h * 0.9
         };
@@ -3331,6 +3331,81 @@
 
         return {
           glyphs,
+          hiddenGlyphCount
+        };
+      }
+
+      function layoutPerchLeafText(text, fontSize, template, spacing) {
+        const zones = template.leafZones || [];
+        const source = String(text || "").replace(/\r/g, "");
+        const totalArea = zones.reduce((sum, zone) => sum + zone.w * zone.h, 0) || 1;
+        const glyphs = [];
+        const perchClusters = [];
+        let hiddenGlyphCount = 0;
+        let cursor = 0;
+
+        zones.forEach((zone, index) => {
+          const remaining = source.length - cursor;
+          if (remaining <= 0) {
+            return;
+          }
+
+          let takeCount = index === zones.length - 1
+            ? remaining
+            : Math.max(1, Math.round(source.length * ((zone.w * zone.h) / totalArea)));
+          takeCount = Math.min(takeCount, remaining);
+
+          const blockText = source.slice(cursor, cursor + takeCount);
+          const inner = {
+            x: zone.x + zone.w * 0.12,
+            y: zone.y + zone.h * 0.14,
+            w: zone.w * 0.76,
+            h: zone.h * 0.72
+          };
+          const result = layoutTextBlock(blockText, fontSize, inner, spacing, "ltr");
+          const cluster = {
+            index,
+            baseX: zone.x + zone.w * 0.5,
+            baseY: zone.y + zone.h * 0.5,
+            x: zone.x + zone.w * 0.5,
+            y: zone.y + zone.h * 0.5,
+            vx: 0,
+            vy: 0,
+            restAngle: zone.tilt || 0,
+            angle: zone.tilt || 0,
+            angVel: 0,
+            phase: Math.random() * Math.PI * 2,
+            falling: false,
+            fade: 1,
+            landed: false
+          };
+
+          result.glyphs.forEach((glyph) => {
+            glyph.seed = Math.random() * Math.PI * 2;
+            glyph.advance = charWidth(glyph.char, fontSize);
+            glyph.perchPart = "leaf";
+            glyph.perchCluster = index;
+            glyph.localX = glyph.baseX - cluster.baseX;
+            glyph.localY = glyph.baseY - cluster.baseY;
+            glyph.fill = "rgba(243, 246, 250, 0.96)";
+            glyph.sheenColor = "rgba(255, 255, 255, 0.88)";
+            glyph.orderedX = glyph.baseX;
+            glyph.orderedY = glyph.baseY;
+            glyphs.push(glyph);
+          });
+
+          perchClusters.push(cluster);
+          hiddenGlyphCount += result.hiddenGlyphCount;
+          cursor += takeCount;
+        });
+
+        if (cursor < source.length) {
+          hiddenGlyphCount += source.length - cursor;
+        }
+
+        return {
+          glyphs,
+          perchClusters,
           hiddenGlyphCount
         };
       }
@@ -3378,74 +3453,23 @@
         const spacing = getSpacingConfig(fontSize);
         const template = getPerchTemplate(region);
         const glyphs = [];
-        const perchClusters = [];
-        const leafChars = Array.from(String(state.perchLeafText || "").replace(/\s+/g, ""));
+        const leafLayout = layoutPerchLeafText(
+          state.perchLeafText || "",
+          Math.max(12, fontSize * 0.76),
+          template,
+          spacing
+        );
         const trunkLayout = layoutPerchTrunkText(
           state.perchTrunkText || "",
           Math.max(12, fontSize * 0.82),
           template,
           spacing
         );
-        let cursor = 0;
-        let hiddenGlyphCount = trunkLayout.hiddenGlyphCount;
-        let clusterIndex = 0;
-        let remainingLeafs = leafChars.length;
-        let totalClusters = 0;
+        const hiddenGlyphCount = trunkLayout.hiddenGlyphCount + leafLayout.hiddenGlyphCount;
 
-        while (remainingLeafs > 0) {
-          remainingLeafs -= getLeafPattern(fontSize, totalClusters).length;
-          totalClusters += 1;
-        }
-
-        const anchors = getPerchAnchors(template, totalClusters);
-
-        while (cursor < leafChars.length) {
-          const anchor = anchors[clusterIndex] || getPerchAnchor(template, clusterIndex);
-          const pattern = getLeafPattern(fontSize * (anchor.scale || 1), clusterIndex);
-          const remaining = leafChars.length - cursor;
-          const charCount = Math.min(pattern.length, remaining);
-          const cluster = {
-            index: clusterIndex,
-            baseX: anchor.x,
-            baseY: anchor.y,
-            x: anchor.x,
-            y: anchor.y,
-            vx: 0,
-            vy: 0,
-            restAngle: anchor.angle || 0,
-            angle: (anchor.angle || 0) + (clusterIndex % 2 === 0 ? -1 : 1) * 0.04,
-            angVel: 0,
-            phase: Math.random() * Math.PI * 2,
-            falling: false,
-            fade: 1,
-            landed: false
-          };
-
-          for (let i = 0; i < charCount; i += 1) {
-            const offset = pattern[i];
-            const char = leafChars[cursor];
-            const glyph = makeGlyph(char, anchor.x + offset.x, anchor.y + offset.y, fontSize * 0.88, anchor.x);
-            glyph.seed = Math.random() * Math.PI * 2;
-            glyph.advance = charWidth(char, fontSize * 0.88);
-            glyph.perchPart = "leaf";
-            glyph.perchCluster = clusterIndex;
-            glyph.localX = offset.x;
-            glyph.localY = offset.y;
-            glyph.fill = "rgba(245, 247, 250, 0.98)";
-            glyph.sheenColor = "rgba(255, 255, 255, 0.9)";
-            glyph.orderedX = glyph.baseX;
-            glyph.orderedY = glyph.baseY;
-            glyphs.push(glyph);
-            cursor += 1;
-          }
-
-          perchClusters.push(cluster);
-          clusterIndex += 1;
-        }
-
-        if (cursor < leafChars.length) {
-          hiddenGlyphCount += leafChars.length - cursor;
-        }
+        leafLayout.glyphs.forEach((glyph) => {
+          glyphs.push(glyph);
+        });
 
         trunkLayout.glyphs.forEach((glyph) => {
           glyph.perchPart = "trunk";
@@ -3461,7 +3485,7 @@
           glyphs,
           fontSize,
           hiddenGlyphCount,
-          perchClusters,
+          perchClusters: leafLayout.perchClusters,
           perchTemplate: template
         };
       }
@@ -3977,10 +4001,19 @@
         if (state.mode !== "web") {
           return;
         }
-        state.webs = state.webs.filter((web) => web.captures.length > 1);
+        state.webs = state.webs.filter((web) => web.captures.length > 1 && web.decay > 0.06);
         state.webs.forEach((web) => {
           web.age += dt;
-          web.currentRadius += (web.targetRadius - web.currentRadius) * Math.min(1, dt * 1.65);
+          web.decay = Math.max(0, web.decay - dt * 0.012);
+          web.currentRadius += (web.targetRadius - web.currentRadius) * Math.min(1, dt * 0.92);
+          web.captures.forEach((glyphIndex, captureIndex) => {
+            const glyph = state.glyphs[glyphIndex];
+            if (!glyph || glyph.webId !== web.id) {
+              return;
+            }
+            const pullRate = 1.6 + (captureIndex % 5) * 0.12;
+            glyph.webPull += (1 - glyph.webPull) * Math.min(1, dt * pullRate);
+          });
         });
       }
 
@@ -4150,26 +4183,56 @@
             const web = glyph.webId >= 0 ? webMap.get(glyph.webId) : null;
             if (web) {
               const shrinkRatio = clamp(web.currentRadius / Math.max(web.radius, 1), 0.2, 1);
-              const angle = glyph.webAngle + Math.sin(state.time * 0.86 + glyph.seed) * 0.05 + web.spin * web.age;
-              const radius = Math.max(state.activeFontSize * 0.42, glyph.webRadius * shrinkRatio);
-              targetX = web.x + Math.cos(angle) * radius;
-              targetY = web.y + Math.sin(angle) * radius * 0.96;
-              targetRotation = Math.sin(state.time * 0.52 + glyph.seed) * 0.08;
-              targetScale = 0.94 - (1 - shrinkRatio) * 0.08;
-              targetAlpha = 0.82 + shrinkRatio * 0.18;
-              sheen = Math.max(sheen, 0.18 + (1 - shrinkRatio) * 0.16);
+              const pull = clamp(glyph.webPull || 0, 0, 1);
+              const sway = Math.sin(state.time * 0.72 + glyph.seed * 1.3 + web.age * 0.7) * 0.085 * (0.32 + pull * 0.68);
+              const angle = glyph.webAngle + sway + web.spin * web.age;
+              const radius = Math.max(state.activeFontSize * 0.42, glyph.webRadius * (0.34 + shrinkRatio * 0.66));
+              const sag = pull * (1 - shrinkRatio) * state.activeFontSize * (0.18 + Math.abs(Math.sin(glyph.seed + state.time * 0.48)) * 0.18);
+              const webX = web.x + Math.cos(angle) * radius;
+              const webY = web.y + Math.sin(angle) * radius * 0.97 + sag;
+              targetX = glyph.baseX + (webX - glyph.baseX) * pull;
+              targetY = glyph.baseY + (webY - glyph.baseY) * pull;
+              targetRotation = Math.sin(state.time * 0.46 + glyph.seed) * 0.05 + Math.sin(angle) * 0.18 * pull;
+              targetScale = 1 - pull * (1 - shrinkRatio) * 0.11;
+              targetAlpha = 0.86 + pull * 0.14;
+              sheen = Math.max(sheen, 0.14 + pull * 0.18 + (1 - shrinkRatio) * 0.12);
             }
           }
 
           if (state.mode === "tide") {
+            const region = state.textRegion;
             const direction = state.tideDirection === "left" ? -1 : 1;
-            const tideSpeed = 0.78 + state.tideIntensity * 0.42;
-            const waveA = Math.sin(glyph.baseX * 0.012 + state.time * tideSpeed * direction + glyph.lineIndex * 0.68 + glyph.seed) * state.activeFontSize * (0.18 + state.tideIntensity * 0.16);
-            const waveB = Math.cos(glyph.baseY * 0.01 - state.time * (0.42 + state.tideIntensity * 0.16) * direction + glyph.seed * 0.8) * state.activeFontSize * 0.08 * state.tideIntensity;
-            targetX += direction * state.activeFontSize * 0.1 * state.tideIntensity + waveB;
-            targetY += waveA;
-            targetRotation += waveA * 0.0042;
-            targetScale += Math.abs(waveA) * 0.0016;
+            const intensity = clamp(state.tideIntensity, 0.35, 3.2);
+            const activeWindow = 0.72;
+            const cycleDuration = Math.max(2.6, 5.6 - intensity * 0.72);
+            const cycle = (state.time / cycleDuration) % 1;
+            const isActive = cycle < activeWindow;
+            const waveProgress = isActive ? cycle / activeWindow : 1;
+            const spread = region.w * (0.16 + intensity * 0.065);
+            const lead = region.w * 0.22;
+            const trail = region.w * 0.34;
+            const crestX = direction < 0
+              ? region.x + region.w + lead - (region.w + lead + trail) * waveProgress
+              : region.x - lead + (region.w + lead + trail) * waveProgress;
+            const xDist = glyph.baseX - crestX;
+            const envelope = isActive ? Math.exp(-(xDist * xDist) / Math.max(1, 2 * spread * spread)) : 0;
+            const bandPhase = ((glyph.baseY - region.y) / Math.max(region.h, 1)) * Math.PI * 2.05;
+            const waveCurve =
+              Math.sin(bandPhase + xDist / Math.max(36, spread * 0.42) + state.time * (0.92 + intensity * 0.12)) +
+              Math.cos(bandPhase * 0.52 - xDist / Math.max(44, spread * 0.56) + state.time * 0.48) * 0.42;
+            const trailField = isActive
+              ? direction < 0
+                ? clamp((glyph.baseX - crestX) / Math.max(region.w * 0.7, 1), 0, 1)
+                : clamp((crestX - glyph.baseX) / Math.max(region.w * 0.7, 1), 0, 1)
+              : 0;
+            const drift = direction * region.w * (0.035 + intensity * 0.055) * trailField * Math.sin(waveProgress * Math.PI);
+            const cross = Math.cos(bandPhase * 0.72 + state.time * 0.66 + glyph.seed) * state.activeFontSize * (0.08 + intensity * 0.12) * envelope;
+            const lift = waveCurve * state.activeFontSize * (0.24 + intensity * 0.46) * envelope;
+
+            targetX += drift + cross;
+            targetY += lift;
+            targetRotation += lift * 0.0054 + drift * 0.0018;
+            targetScale += Math.abs(lift) * 0.0021;
 
             state.tideDrops.forEach((drop) => {
               const dx = glyph.baseX - drop.x;
@@ -4179,13 +4242,20 @@
                 return;
               }
               const progress = clamp(drop.age / drop.duration, 0, 1);
-              const pulse = Math.sin(progress * Math.PI);
-              const influence = Math.pow(1 - distance / drop.radius, 1.5) * pulse * drop.strength;
-              targetX += -dx * influence * 0.18 + direction * influence * state.activeFontSize * 0.24;
-              targetY += -influence * state.activeFontSize * 1.95 - dy * influence * 0.08;
-              targetRotation += dx * 0.0024 * influence;
-              targetScale += influence * 0.16;
-              sheen = Math.max(sheen, influence * 0.3);
+              const rippleRadius = drop.radius * (0.16 + progress * 0.86);
+              const ringWidth = Math.max(state.activeFontSize * (0.7 + intensity * 0.22), drop.radius * 0.14);
+              const ringDelta = Math.abs(distance - rippleRadius);
+              const ringInfluence = Math.max(0, 1 - ringDelta / ringWidth);
+              const coreInfluence = Math.max(0, 1 - distance / Math.max(drop.radius * 0.24, 1));
+              const influence = Math.max(ringInfluence * 0.92, coreInfluence * 0.58) * drop.strength;
+              if (influence <= 0) {
+                return;
+              }
+              targetX += -dx * influence * 0.08 + direction * influence * state.activeFontSize * 0.16;
+              targetY += -influence * state.activeFontSize * (1.15 + ringInfluence * 1.08) - dy * influence * 0.04;
+              targetRotation += dx * 0.0018 * influence;
+              targetScale += influence * 0.11;
+              sheen = Math.max(sheen, influence * 0.34);
             });
           }
 
@@ -4371,27 +4441,25 @@
         if (state.mode !== "perch" || !state.perchTemplate) {
           return;
         }
-        const { branchPaths, leafFans, twigs } = state.perchTemplate;
+        const { branchPaths, leafZones, twigs } = state.perchTemplate;
         ctx.save();
         ctx.globalAlpha = 0.95;
 
-        leafFans.forEach((fan) => {
-          const angles = [-0.82, -0.38, 0, 0.38, 0.82];
-          ctx.strokeStyle = "rgba(112, 181, 160, 0.72)";
-          ctx.lineCap = "round";
-          ctx.lineJoin = "round";
-          angles.forEach((offset, index) => {
-            const angle = fan.dir + offset;
-            const length = fan.size * (index === 2 ? 2.8 : 2.28 - Math.abs(offset) * 0.3);
-            ctx.lineWidth = Math.max(4.2, fan.size * (0.52 - Math.abs(offset) * 0.06));
-            ctx.beginPath();
-            ctx.moveTo(fan.x, fan.y);
-            ctx.lineTo(
-              fan.x + Math.cos(angle) * length,
-              fan.y + Math.sin(angle) * length
-            );
-            ctx.stroke();
-          });
+        leafZones.forEach((zone, index) => {
+          ctx.save();
+          ctx.translate(zone.x + zone.w * 0.5, zone.y + zone.h * 0.5);
+          ctx.rotate(zone.tilt || 0);
+          const gradient = ctx.createLinearGradient(0, -zone.h * 0.5, 0, zone.h * 0.5);
+          gradient.addColorStop(0, index % 2 === 0 ? "rgba(114, 144, 185, 0.78)" : "rgba(103, 132, 170, 0.72)");
+          gradient.addColorStop(1, "rgba(83, 111, 148, 0.82)");
+          ctx.fillStyle = gradient;
+          ctx.strokeStyle = "rgba(227, 234, 246, 0.09)";
+          ctx.lineWidth = Math.max(1.2, state.activeFontSize * 0.05);
+          ctx.beginPath();
+          ctx.ellipse(0, 0, zone.w * 0.5, zone.h * 0.5, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          ctx.restore();
         });
 
         ctx.strokeStyle = "rgba(245, 242, 233, 0.98)";
@@ -4557,7 +4625,11 @@
         }
 
         ctx.save();
-        ctx.strokeStyle = "rgba(230, 236, 245, 0.58)";
+        const webStroke = rgbaFromHex(state.surfaceText, 0.78);
+        const webSoft = rgbaFromHex(state.surfaceText, 0.32);
+        ctx.strokeStyle = webStroke;
+        ctx.shadowColor = rgbaFromHex(state.surfaceText, 0.16);
+        ctx.shadowBlur = 10;
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
 
@@ -4571,12 +4643,16 @@
             return;
           }
 
-          [0.34, 0.58, 0.86].forEach((ratio, ringIndex) => {
+          [0.18, 0.36, 0.58, 0.82].forEach((ratio, ringIndex) => {
             ctx.beginPath();
             attached.forEach((glyph, index) => {
-              const radius = Math.max(state.activeFontSize * 0.4, glyph.webRadius * ratio * (web.currentRadius / Math.max(web.radius, 1)));
+              const jitter = Math.sin(index * 1.4 + ratio * 6.2 + web.age * 0.9) * state.activeFontSize * 0.03;
+              const radius = Math.max(
+                state.activeFontSize * 0.34,
+                glyph.webRadius * ratio * (web.currentRadius / Math.max(web.radius, 1)) + jitter
+              );
               const x = web.x + Math.cos(glyph.webAngle) * radius;
-              const y = web.y + Math.sin(glyph.webAngle) * radius * 0.96;
+              const y = web.y + Math.sin(glyph.webAngle) * radius * 0.97;
               if (index === 0) {
                 ctx.moveTo(x, y);
               } else {
@@ -4584,56 +4660,120 @@
               }
             });
             ctx.closePath();
-            ctx.lineWidth = ringIndex === 2 ? 1.4 : 1.05;
-            ctx.globalAlpha = 0.34 + ratio * 0.22;
+            ctx.lineWidth = ringIndex >= 2 ? 1.75 : 1.25;
+            ctx.globalAlpha = (0.22 + ratio * 0.46) * web.decay;
             ctx.stroke();
           });
 
-          attached.forEach((glyph, index) => {
-            if (index % 2 !== 0) {
-              return;
-            }
+          attached.forEach((glyph) => {
             ctx.beginPath();
             ctx.moveTo(web.x, web.y);
             ctx.lineTo(glyph.x, glyph.y);
-            ctx.lineWidth = 1;
-            ctx.globalAlpha = 0.42;
+            ctx.lineWidth = 1.15;
+            ctx.globalAlpha = 0.52 * web.decay;
             ctx.stroke();
           });
 
           ctx.beginPath();
-          ctx.fillStyle = "rgba(235, 240, 247, 0.28)";
+          attached.forEach((glyph, index) => {
+            const next = attached[(index + 2) % attached.length];
+            if (!next) {
+              return;
+            }
+            ctx.moveTo(glyph.x, glyph.y);
+            ctx.lineTo(next.x, next.y);
+          });
+          ctx.strokeStyle = webSoft;
+          ctx.lineWidth = 0.9;
+          ctx.globalAlpha = 0.22 * web.decay;
+          ctx.stroke();
+          ctx.strokeStyle = webStroke;
+
+          ctx.beginPath();
+          ctx.fillStyle = rgbaFromHex(state.surfaceText, 0.24 * web.decay);
           ctx.arc(web.x, web.y, Math.max(2.4, state.activeFontSize * 0.12), 0, Math.PI * 2);
           ctx.fill();
         });
 
+        ctx.shadowBlur = 0;
         ctx.restore();
       }
 
       function drawTideEffects() {
-        if (state.mode !== "tide" || !state.tideDrops.length) {
+        if (state.mode !== "tide" || !state.textRegion) {
           return;
         }
 
         ctx.save();
+        const region = state.textRegion;
+        const direction = state.tideDirection === "left" ? -1 : 1;
+        const intensity = clamp(state.tideIntensity, 0.35, 3.2);
+        const activeWindow = 0.72;
+        const cycleDuration = Math.max(2.6, 5.6 - intensity * 0.72);
+        const cycle = (state.time / cycleDuration) % 1;
+        if (cycle < activeWindow) {
+          const waveProgress = cycle / activeWindow;
+          const spread = region.w * (0.16 + intensity * 0.065);
+          const lead = region.w * 0.22;
+          const trail = region.w * 0.34;
+          const crestX = direction < 0
+            ? region.x + region.w + lead - (region.w + lead + trail) * waveProgress
+            : region.x - lead + (region.w + lead + trail) * waveProgress;
+          const ambient = ctx.createLinearGradient(crestX - spread, region.y, crestX + spread, region.y);
+          ambient.addColorStop(0, "rgba(165, 196, 223, 0)");
+          ambient.addColorStop(0.22, `rgba(165, 196, 223, ${0.035 + intensity * 0.012})`);
+          ambient.addColorStop(0.5, `rgba(215, 231, 245, ${0.06 + intensity * 0.016})`);
+          ambient.addColorStop(0.78, `rgba(165, 196, 223, ${0.035 + intensity * 0.012})`);
+          ambient.addColorStop(1, "rgba(165, 196, 223, 0)");
+          ctx.fillStyle = ambient;
+          ctx.fillRect(region.x, region.y, region.w, region.h);
+        }
+
+        if (!state.tideDrops.length) {
+          ctx.restore();
+          return;
+        }
+
         state.tideDrops.forEach((drop) => {
           const progress = clamp(drop.age / drop.duration, 0, 1);
           const pulse = Math.sin(progress * Math.PI);
-          const radius = drop.radius * (0.28 + pulse * 0.46);
+          const radius = drop.radius * (0.16 + progress * 0.86);
           const gradient = ctx.createRadialGradient(drop.x, drop.y, 0, drop.x, drop.y, radius);
-          gradient.addColorStop(0, `rgba(175, 205, 232, ${0.18 * pulse})`);
-          gradient.addColorStop(0.52, `rgba(175, 205, 232, ${0.08 * pulse})`);
+          gradient.addColorStop(0, `rgba(175, 205, 232, ${0.24 * pulse})`);
+          gradient.addColorStop(0.38, `rgba(175, 205, 232, ${0.12 * pulse})`);
           gradient.addColorStop(1, "rgba(175, 205, 232, 0)");
           ctx.fillStyle = gradient;
           ctx.beginPath();
           ctx.arc(drop.x, drop.y, radius, 0, Math.PI * 2);
+          ctx.fill();
+
+          [0, 0.22, 0.46].forEach((offset, index) => {
+            const ringRadius = radius * (0.58 + offset);
+            const alpha = Math.max(0, (0.42 - index * 0.1) * (1 - progress));
+            ctx.beginPath();
+            ctx.strokeStyle = `rgba(226, 238, 250, ${alpha})`;
+            ctx.lineWidth = Math.max(1.1, state.activeFontSize * 0.065);
+            ctx.arc(drop.x, drop.y, ringRadius, 0, Math.PI * 2);
+            ctx.stroke();
+          });
+
+          ctx.beginPath();
+          ctx.fillStyle = `rgba(241, 246, 252, ${0.18 * (1 - progress)})`;
+          ctx.arc(drop.x, drop.y - radius * 0.1, Math.max(4, radius * 0.08), 0, Math.PI * 2);
           ctx.fill();
         });
         ctx.restore();
       }
 
       function drawGrowthPaths() {
-        if (state.mode !== "growth" || !state.growthStrokes.length) {
+        const growthComplete =
+          state.growthCursor >= state.growthSequence.filter((item) => item.visible).length &&
+          state.glyphs.length > 0;
+        if (
+          state.mode !== "growth" ||
+          !state.growthStrokes.length ||
+          (!state.growthReplayActive && !state.growthDrawing && growthComplete)
+        ) {
           return;
         }
 
@@ -5130,6 +5270,9 @@
               stroke.totalLength = totalLength;
               growAlongStroke(stroke);
               state.growthLastReplay = cloneGrowthStrokes(state.growthStrokes);
+              if (state.growthCursor >= state.growthSequence.length) {
+                state.growthDrawing = false;
+              }
               updateLabels();
             }
           }
